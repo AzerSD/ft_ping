@@ -6,7 +6,7 @@
 /*   By: asioud <asioud@42heilbronn.de>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/20 04:15:25 by asioud            #+#    #+#             */
-/*   Updated: 2023/10/20 16:04:06 by asioud           ###   ########.fr       */
+/*   Updated: 2023/10/21 01:24:33 by asioud           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,16 +19,34 @@ void intHandler(int dummy)
 	ping_loop=0;
 }
 
-int send_ping(int sockfd, char *domain)
+int send_ping(int sockfd, char *domainName)
 {
-	
+
+	resolve_fqdn(domainName);
+
 	return 0;
 }
 
-int ft_ping(char *domain)
+struct addrinfo resolve_fqdn(char *domainName)
 {
-	char *sockfd;
-	char *domain;
+	struct addrinfo server;
+	struct addrinfo hints;
+
+	memset(&hints, 0, sizeof hints); /* libft */
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	
+	int status = getaddrinfo(domainName, NULL, &hints, &server);
+	if (status != 0) {
+		fprintf(stderr, "getaddrinfo error: %s\n", gai_strerror(status));
+        exit(1);
+	}
+	return server;
+}
+
+int ft_ping(char *domainName)
+{
+	int		sockfd;
 
 	sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 	if (sockfd < 0)
@@ -42,7 +60,7 @@ int ft_ping(char *domain)
 	}
 
 	signal(SIGINT, intHandler);
-	send_ping(sockfd, domain);
+	send_ping(sockfd, domainName);
 	
 	return 0;
 }
