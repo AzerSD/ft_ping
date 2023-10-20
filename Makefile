@@ -6,7 +6,7 @@
 #    By: asioud <asioud@42heilbronn.de>             +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/10/20 04:17:53 by asioud            #+#    #+#              #
-#    Updated: 2023/10/20 04:44:05 by asioud           ###   ########.fr        #
+#    Updated: 2023/10/20 05:02:41 by asioud           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,7 +18,7 @@ RM			=	rm -rf
 
 LIBFT		= 	libs/libft/libft.a
 
-CFLAGS		=	-g -Wall -Wextra -Werror
+CFLAGS		=	-g -Wall -Wextra
 
 SANITIZE	=	-fsanitize=address
 
