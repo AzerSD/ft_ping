@@ -6,7 +6,7 @@
 /*   By: asioud <asioud@42heilbronn.de>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/20 04:15:25 by asioud            #+#    #+#             */
-/*   Updated: 2023/10/21 10:18:13 by asioud           ###   ########.fr       */
+/*   Updated: 2023/10/21 16:20:05 by asioud           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,12 +23,26 @@ int ping_loop = 1;
 
 void intHandler(int dummy)
 {
+    (void) dummy;
 	ping_loop=0;
 }
  
+
+void handlePingResponse(char *responseBuffer) {
+    struct ip *ipHeader = (struct ip *)responseBuffer;
+    int ipHeaderLength = ipHeader->ip_hl * 4;
+    struct icmp *icmpHeader = (struct icmp *)(responseBuffer + ipHeaderLength);
+
+    if (icmpHeader->icmp_type == ICMP_ECHOREPLY) {
+        printf("Received Ping Reply from %s\n", inet_ntoa(ipHeader->ip_src));
+    } else {
+        printf("Received ICMP packet of type %d\n", icmpHeader->icmp_type);
+    }
+}
+
 int send_ping(int sockfd, char *domainName)
 {
-
+    (void) domainName;
 	// struct sockaddr targetAddress = resolve_fqdn(domainName);
 	struct sockaddr_in targetAddress;
     targetAddress.sin_family = AF_INET;
@@ -51,6 +65,20 @@ int send_ping(int sockfd, char *domainName)
         close(sockfd);
         exit(EXIT_FAILURE);
     }
+
+	    printf("Ping sent to %s\n", "8.8.8.8");
+
+    // Listen for ICMP Echo Replies
+	char responseBuffer[PACKET_SIZE];
+    memset(responseBuffer, 0, PACKET_SIZE);
+    int received_bytes = recv(sockfd, responseBuffer, PACKET_SIZE, 0);
+    if (received_bytes == -1) {
+        perror("Failed to receive ICMP response");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
+
+    handlePingResponse(responseBuffer);
 
 	return 0;
 }

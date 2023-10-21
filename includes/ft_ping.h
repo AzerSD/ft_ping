@@ -5,13 +5,15 @@
 # include <stdio.h> // printf
 # include <unistd.h>
 # include <stdlib.h> // exit
+# include <signal.h>
+# include <string.h>
 # include <sys/types.h>
+
+# include <netinet/ip_icmp.h>
 # include <sys/socket.h>
 # include <netinet/in.h>
-# include <netinet/ip_icmp.h>
-# include <signal.h>
+# include <arpa/inet.h>
 # include <netdb.h>
-# include <string.h>
 
 # include "ANSI-color-codes.h"
 
