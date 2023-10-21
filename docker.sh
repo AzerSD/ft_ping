@@ -11,5 +11,5 @@ if [[ "$(docker images -q $IMAGENAME 2> /dev/null)" == "" ]]; then
 fi
 
 docker run --security-opt "apparmor=unconfined" --security-opt "seccomp=unconfined" \
-    -it --mount type=bind, source="$SCRIPTPATH", target=/root/$IMAGENAME $IMAGENAME
+    -it --mount type=bind,source="$SCRIPTPATH",target=/root/$IMAGENAME $IMAGENAME
     

@@ -6,11 +6,18 @@
 /*   By: asioud <asioud@42heilbronn.de>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/20 04:15:25 by asioud            #+#    #+#             */
-/*   Updated: 2023/10/21 02:02:07 by asioud           ###   ########.fr       */
+/*   Updated: 2023/10/21 10:18:13 by asioud           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_ping.h"
+
+     #include <sys/socket.h>
+     #include <netinet/in.h>
+
+	 
+#define PACKET_SIZE 64
+#define ICMP_HEADER_SIZE 8
 
 int ping_loop = 1;
 
@@ -18,18 +25,39 @@ void intHandler(int dummy)
 {
 	ping_loop=0;
 }
-
+ 
 int send_ping(int sockfd, char *domainName)
 {
 
-	resolve_fqdn(domainName);
-	printf("asdfasdf\n");
+	// struct sockaddr targetAddress = resolve_fqdn(domainName);
+	struct sockaddr_in targetAddress;
+    targetAddress.sin_family = AF_INET;
+    targetAddress.sin_addr.s_addr = inet_addr("8.8.8.8");
+	
+	char packet[PACKET_SIZE];
+    memset(packet, 0, PACKET_SIZE);
+	
+	struct icmp *icmpHeader = (struct icmp *)packet;
+    icmpHeader->icmp_type = ICMP_ECHO;
+    icmpHeader->icmp_code = 0;
+    icmpHeader->icmp_id = getpid();
+    icmpHeader->icmp_seq = 1;
+    icmpHeader->icmp_cksum = 0;
+    // icmpHeader->icmp_cksum = calculateChecksum((unsigned short *)icmpHeader, ICMP_HEADER_SIZE + PACKET_SIZE);
+
+	int sent_bytes = sendto(sockfd, packet, PACKET_SIZE, 0, (struct sockaddr *)&targetAddress, sizeof(targetAddress));
+    if (sent_bytes == -1) {
+        perror("Failed to send ICMP packet");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
+
 	return 0;
 }
 
 struct addrinfo resolve_fqdn(char *domainName)
 {
-	struct addrinfo server;
+	struct addrinfo *server;
 	struct addrinfo hints;
 
 	memset(&hints, 0, sizeof hints); /* libft */
@@ -41,7 +69,7 @@ struct addrinfo resolve_fqdn(char *domainName)
 		fprintf(stderr, "getaddrinfo error: %s\n", gai_strerror(status));
         exit(1);
 	}
-	return server;
+	return *server;
 }
 
 int ft_ping(char *domainName)
@@ -67,6 +95,12 @@ int ft_ping(char *domainName)
 
 int main(int argc, char **argv)
 {
+	/* Check for root access */
+    if (getuid() != 0)
+    {
+        fprintf(stderr, "%s: raw socket operations require superuser privileges!\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
 	if (argc == 2)
 		ft_ping(argv[1]);
 	else
