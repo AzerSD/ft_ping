@@ -6,7 +6,7 @@
 /*   By: asioud <asioud@42heilbronn.de>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/20 04:15:25 by asioud            #+#    #+#             */
-/*   Updated: 2023/10/21 01:24:33 by asioud           ###   ########.fr       */
+/*   Updated: 2023/10/21 02:02:07 by asioud           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ int send_ping(int sockfd, char *domainName)
 {
 
 	resolve_fqdn(domainName);
-
+	printf("asdfasdf\n");
 	return 0;
 }
 
