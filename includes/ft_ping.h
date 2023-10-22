@@ -13,8 +13,10 @@
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <arpa/inet.h>
+# include <netinet/ip.h>
 # include <netdb.h>
 
+     
 # include "ANSI-color-codes.h"
 
 
@@ -22,5 +24,7 @@ struct addrinfo resolve_fqdn(char *domainName);
 int send_ping(int sockfd, char *domainName);
 void intHandler(int dummy);
 int ft_ping(char *domainName);
+unsigned short checksum(void *b, int len);
+
 
 #endif

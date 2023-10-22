@@ -6,27 +6,39 @@
 /*   By: asioud <asioud@42heilbronn.de>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/20 04:15:25 by asioud            #+#    #+#             */
-/*   Updated: 2023/10/21 16:20:05 by asioud           ###   ########.fr       */
+/*   Updated: 2023/10/22 03:01:51 by asioud           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_ping.h"
 
-     #include <sys/socket.h>
-     #include <netinet/in.h>
 
 	 
-#define PACKET_SIZE 64
+#define PACKET_SIZE 20 /*ping of death attack*/ 
 #define ICMP_HEADER_SIZE 8
 
 int ping_loop = 1;
+
+unsigned short checksum(void *b, int len)
+{    unsigned short *buf = b;
+    unsigned int sum=0;
+    unsigned short result;
+ 
+    for ( sum = 0; len > 1; len -= 2 )
+        sum += *buf++;
+    if ( len == 1 )
+        sum += *(unsigned char*)buf;
+    sum = (sum >> 16) + (sum & 0xFFFF);
+    sum += (sum >> 16);
+    result = ~sum;
+    return result;
+}
 
 void intHandler(int dummy)
 {
     (void) dummy;
 	ping_loop=0;
 }
- 
 
 void handlePingResponse(char *responseBuffer) {
     struct ip *ipHeader = (struct ip *)responseBuffer;
@@ -40,15 +52,14 @@ void handlePingResponse(char *responseBuffer) {
     }
 }
 
-int send_ping(int sockfd, char *domainName)
+void echo_request(int sockfd, char *domainName)
 {
-    (void) domainName;
-	// struct sockaddr targetAddress = resolve_fqdn(domainName);
-	struct sockaddr_in targetAddress;
+    struct sockaddr_in targetAddress;
+    // struct sockaddr targetAddress = resolve_fqdn(domainName);
     targetAddress.sin_family = AF_INET;
     targetAddress.sin_addr.s_addr = inet_addr("8.8.8.8");
-	
-	char packet[PACKET_SIZE];
+
+    char packet[PACKET_SIZE];
     memset(packet, 0, PACKET_SIZE);
 	
 	struct icmp *icmpHeader = (struct icmp *)packet;
@@ -57,18 +68,19 @@ int send_ping(int sockfd, char *domainName)
     icmpHeader->icmp_id = getpid();
     icmpHeader->icmp_seq = 1;
     icmpHeader->icmp_cksum = 0;
-    // icmpHeader->icmp_cksum = calculateChecksum((unsigned short *)icmpHeader, ICMP_HEADER_SIZE + PACKET_SIZE);
+    icmpHeader->icmp_cksum = checksum((unsigned short *)icmpHeader, ICMP_HEADER_SIZE + PACKET_SIZE);
 
-	int sent_bytes = sendto(sockfd, packet, PACKET_SIZE, 0, (struct sockaddr *)&targetAddress, sizeof(targetAddress));
+    int sent_bytes = sendto(sockfd, packet, PACKET_SIZE, 0, (struct sockaddr *)&targetAddress, sizeof(targetAddress));
     if (sent_bytes == -1) {
         perror("Failed to send ICMP packet");
         close(sockfd);
         exit(EXIT_FAILURE);
     }
+    printf("Echo Request sent to %s\n", "8.8.8.8");
+}
 
-	    printf("Ping sent to %s\n", "8.8.8.8");
-
-    // Listen for ICMP Echo Replies
+void echo_reply(int sockfd, char *domainName)
+{
 	char responseBuffer[PACKET_SIZE];
     memset(responseBuffer, 0, PACKET_SIZE);
     int received_bytes = recv(sockfd, responseBuffer, PACKET_SIZE, 0);
@@ -78,10 +90,14 @@ int send_ping(int sockfd, char *domainName)
         exit(EXIT_FAILURE);
     }
 
-    handlePingResponse(responseBuffer);
-
-	return 0;
+    struct ip *ipHeader = (struct ip *)responseBuffer;
+    if (ipHeader->ip_p == IPPROTO_ICMP) {
+        handlePingResponse(responseBuffer);
+    } else {
+        printf("Received non-ICMP packet\n");
+    }
 }
+
 
 struct addrinfo resolve_fqdn(char *domainName)
 {
@@ -104,6 +120,7 @@ int ft_ping(char *domainName)
 {
 	int		sockfd;
 
+    (void) domainName;
 	sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 	if (sockfd < 0)
 	{
@@ -114,10 +131,12 @@ int ft_ping(char *domainName)
 	{
 		printf("\nSocket file descriptor %d received\n", sockfd);
 	}
-
 	signal(SIGINT, intHandler);
-	send_ping(sockfd, domainName);
-	
+    while(ping_loop)
+    {
+        echo_request(sockfd, domainName);
+        echo_reply(sockfd, domainName);
+    }
 	return 0;
 }
 
@@ -130,7 +149,9 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 	if (argc == 2)
+    {
 		ft_ping(argv[1]);
+    }
 	else
 		printf(RED "wrong arguments" RESET);
 	
