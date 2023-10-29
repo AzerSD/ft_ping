@@ -48,25 +48,18 @@
 
 
 Allowed function
+| Function        | Description
+| :--						| :--
+| gettimeofday  | Retrieves the current time with microsecond precision. Useful for timestamping packets and measuring network latency. |
+| exit  | Terminates the program immediately. Useful for handling exit conditions or errors gracefully. |
+| inet_ntop / inet_pton  | Converts IP addresses between human-readable and network binary formats. Essential for handling IP addresses in networking applications. |
+| nthos / htons:  | Converts between host byte order and network byte order for 16-bit integers. Ensures consistency in data representation across different systems. |
+| signal / alarm / usleep  | Manages signal handling, timers, and microsecond-level sleep. Useful for implementing timeouts and asynchronous behavior in networking code. |
+| socket / setsockopt / close  | Creates, configures, and closes network sockets. Essential functions for establishing and managing network connections. |
+| sendto / recvmsg  | Sends data to a specific address and receives data along with sender information. Core functions for sending and receiving network packets. |
+| getpid / getuid  | Retrieves the process ID and user ID of the current process. Useful for identifying the running process and implementing security checks. |
+| getaddrinfo / getnameinfo / freeaddrinfo | Resolves domain names to IP addresses and vice versa. Also frees memory allocated by getaddrinfo. Essential for DNS resolution in networking applications. |
+| strerror / gai_strerror  | Converts error codes to human-readable error messages. Useful for diagnosing errors encountered during socket operations and network communication. |
+| printf and its family  | Outputs formatted text to the console. Useful for displaying information, debugging, and monitoring the program's behavior. |
 
-    gettimeofday: Retrieves the current time with microsecond precision. Useful for timestamping packets and measuring network latency.
-
-    exit: Terminates the program immediately. Useful for handling exit conditions or errors gracefully.
-
-    inet_ntop / inet_pton: Converts IP addresses between human-readable and network binary formats. Essential for handling IP addresses in networking applications.
-
-    nthos / htons: Converts between host byte order and network byte order for 16-bit integers. Ensures consistency in data representation across different systems.
-
-    signal / alarm / usleep: Manages signal handling, timers, and microsecond-level sleep. Useful for implementing timeouts and asynchronous behavior in networking code.
-
-    socket / setsockopt / close: Creates, configures, and closes network sockets. Essential functions for establishing and managing network connections.
-
-    sendto / recvmsg: Sends data to a specific address and receives data along with sender information. Core functions for sending and receiving network packets.
-
-    getpid / getuid: Retrieves the process ID and user ID of the current process. Useful for identifying the running process and implementing security checks.
-
-    getaddrinfo / getnameinfo / freeaddrinfo: Resolves domain names to IP addresses and vice versa. Also frees memory allocated by getaddrinfo. Essential for DNS resolution in networking applications.
-
-    strerror / gai_strerror: Converts error codes to human-readable error messages. Useful for diagnosing errors encountered during socket operations and network communication.
-
-    printf and its family: Outputs formatted text to the console. Useful for displaying information, debugging, and monitoring the program's behavior.
+---
