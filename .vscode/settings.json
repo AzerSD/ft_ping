@@ -1,5 +1,10 @@
 {
     "files.associations": {
         "in.h": "c"
-    }
+    },
+    "debug.toolBarLocation": "floating",
+    "notebook.consolidatedOutputButton": true,
+    "notebook.globalToolbar": true,
+    "notebook.globalToolbarShowLabel": "always",
+    "notebook.insertToolbarLocation": "both"
 }

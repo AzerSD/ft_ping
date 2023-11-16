@@ -14,7 +14,7 @@
 
 
 	 
-#define PACKET_SIZE 20 /*ping of death attack*/ 
+#define PACKET_SIZE 20 /* ping of death attack */
 #define ICMP_HEADER_SIZE 8
 
 int ping_loop = 1;
@@ -142,12 +142,12 @@ int ft_ping(char *domainName)
 
 int main(int argc, char **argv)
 {
-	/* Check for root access */
     if (getuid() != 0)
     {
         fprintf(stderr, "%s: raw socket operations require superuser privileges!\n", argv[0]);
         exit(EXIT_FAILURE);
     }
+
 	if (argc == 2)
     {
 		ft_ping(argv[1]);
