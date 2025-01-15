@@ -36,9 +36,11 @@ int main()
     struct icmphdr icmp_hdr;
     icmp_hdr.type = ICMP_ECHO;
     icmp_hdr.code = 0;
-    icmp_hdr.checksum = calculate_checksum((uint16_t *)&icmp_hdr, sizeof(icmp_hdr));
+    icmp_hdr.checksum = 0;
     icmp_hdr.un.echo.id = getpid();
     icmp_hdr.un.echo.sequence = 1;
+
+    icmp_hdr.checksum = calculate_checksum(&icmp_hdr, sizeof(icmp_hdr));
 
     struct sockaddr_in dest_addr;
     dest_addr.sin_family = AF_INET;
@@ -59,5 +61,15 @@ int main()
         perror("Recvfrom failed");
         exit(EXIT_FAILURE);
     }
+ 
+    struct iphdr *ip_hdr = (struct iphdr *)buffer;
+    struct icmphdr *icmp_reply = (struct icmphdr *)(buffer + ip_hdr->ihl * 4);
+    printf("%d bytes from %s icmp_seq=%d ttl=%d\n", \
+        ntohs(ip_hdr->tot_len), \
+        inet_ntoa(reply_addr.sin_addr), \
+        icmp_reply->un.echo.sequence, \
+        ip_hdr->ttl
+    );
+
     return 0;
 }
