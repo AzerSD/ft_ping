@@ -8,9 +8,12 @@
 #include <netdb.h>
 #include <sys/time.h>
 #include <errno.h>
+#include <argp.h>
+#include <stdbool.h>
+#include <signal.h>
 
 int interval = 1;
-
+int sig_int = false;
 static unsigned short calculate_checksum(void *b, int len)
 {    unsigned short *buf = b;
     unsigned int sum=0;
@@ -26,7 +29,34 @@ static unsigned short calculate_checksum(void *b, int len)
     return result;
 }
 
-int main(int argc, char *argv[], char *envp[])
+typedef struct ping {
+    char *ping_hostname;
+    size_t ping_num_xmit;
+    size_t ping_num_recv;
+    size_t ping_num_rept;
+} ping_t;
+
+ping_t *ping;
+
+static int ping_finish(ping_t *ping)
+{
+    printf("\n--- %s ping statistics ---\n", ping->ping_hostname);
+    printf("%ld packets transmitted, %ld received, %ld%% packet loss\n", \
+        ping->ping_num_xmit, \
+        ping->ping_num_recv, \
+        (ping->ping_num_xmit - ping->ping_num_recv) / ping->ping_num_xmit * 100
+    );
+    return 0;
+}
+
+static void handle_sigint(int sig)
+{
+    sig_int = true;
+    ping_finish(ping);
+    exit(EXIT_SUCCESS);
+}
+
+int main(int argc, char *argv[])
 {
     if (getuid() != 0)
     {
@@ -40,6 +70,14 @@ int main(int argc, char *argv[], char *envp[])
         perror("Socket creation failed");
         exit(EXIT_FAILURE);
     }
+
+    ping = malloc(sizeof(ping_t));
+    ping->ping_hostname = argv[1];
+    ping->ping_num_xmit = 0;
+    ping->ping_num_recv = 0;
+    ping->ping_num_rept = 0;
+
+    signal(SIGINT, handle_sigint);
 
     // Resolve FQDN to IP
     struct addrinfo hints, *res;
@@ -56,6 +94,7 @@ int main(int argc, char *argv[], char *envp[])
     struct sockaddr_in *addr = (struct sockaddr_in *)res->ai_addr;
     inet_ntop(AF_INET, &(addr->sin_addr), ip_str, sizeof(ip_str));
 
+    printf("PING %s (%s) 56(84) bytes of data.\n", argv[1], ip_str);
     while (1) {
         struct icmphdr icmp_hdr;
         icmp_hdr.type = ICMP_ECHO;
@@ -74,6 +113,7 @@ int main(int argc, char *argv[], char *envp[])
             perror("Sendto failed");
             exit(EXIT_FAILURE);
         }
+        ping->ping_num_xmit++;
 
         // receive response
         char buffer[1024];
@@ -84,6 +124,7 @@ int main(int argc, char *argv[], char *envp[])
             perror("Recvfrom failed");
             exit(EXIT_FAILURE);
         }
+        ping->ping_num_recv++;
     
         struct iphdr *ip_hdr = (struct iphdr *)buffer;
         struct icmphdr *icmp_reply = (struct icmphdr *)(buffer + ip_hdr->ihl * 4);
@@ -93,8 +134,10 @@ int main(int argc, char *argv[], char *envp[])
             icmp_reply->un.echo.sequence, \
             ip_hdr->ttl
         );
+
         sleep(interval);
     }
 
     return 0;
 }
+
