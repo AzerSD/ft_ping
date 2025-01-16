@@ -6,7 +6,7 @@
 #    By: userr <userr@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/10/20 04:17:53 by asioud            #+#    #+#              #
-#    Updated: 2025/01/15 17:16:52 by userr            ###   ########.fr        #
+#    Updated: 2025/01/16 08:06:25 by userr            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -55,7 +55,7 @@ $(LIBFT):
 
 clean:
 	@$(RM) $(OBJ_DIR)
-	@cd libs/libft && make clean
+# @cd libs/libft && make clean
 
 
 fclean:	clean
