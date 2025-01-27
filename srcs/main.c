@@ -14,8 +14,10 @@
 
 int interval = 1;
 int sig_int = false;
+
 static unsigned short calculate_checksum(void *b, int len)
-{    unsigned short *buf = b;
+{   
+    unsigned short *buf = b;
     unsigned int sum=0;
     unsigned short result;
  
@@ -56,11 +58,21 @@ static void handle_sigint(int sig)
     exit(EXIT_SUCCESS);
 }
 
+double calculate_rtt(struct timeval start, struct timeval end) {
+    return (end.tv_sec - start.tv_sec) * 1000.0 + (end.tv_usec - start.tv_usec) / 1000.0;
+}
+
 int main(int argc, char *argv[])
 {
     if (getuid() != 0)
     {
         fprintf(stderr, "ft_ping: You need to be root to run this program\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (argc != 2)
+    {
+        fprintf(stderr, "Usage: %s <hostname>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -93,15 +105,17 @@ int main(int argc, char *argv[])
 
     struct sockaddr_in *addr = (struct sockaddr_in *)res->ai_addr;
     inet_ntop(AF_INET, &(addr->sin_addr), ip_str, sizeof(ip_str));
-
+    int sequence_nb = 1;
     printf("PING %s (%s) 56(84) bytes of data.\n", argv[1], ip_str);
     while (1) {
+        struct timeval start_time, end_time;
+        gettimeofday(&start_time, NULL);
         struct icmphdr icmp_hdr;
         icmp_hdr.type = ICMP_ECHO;
         icmp_hdr.code = 0;
         icmp_hdr.checksum = 0;
         icmp_hdr.un.echo.id = getpid();
-        icmp_hdr.un.echo.sequence = 1;
+        icmp_hdr.un.echo.sequence = sequence_nb++;
 
         icmp_hdr.checksum = calculate_checksum(&icmp_hdr, sizeof(icmp_hdr));
 
@@ -124,15 +138,18 @@ int main(int argc, char *argv[])
             perror("Recvfrom failed");
             exit(EXIT_FAILURE);
         }
+
+        gettimeofday(&end_time, NULL);
         ping->ping_num_recv++;
-    
+        double rtt = calculate_rtt(start_time, end_time);
         struct iphdr *ip_hdr = (struct iphdr *)buffer;
         struct icmphdr *icmp_reply = (struct icmphdr *)(buffer + ip_hdr->ihl * 4);
-        printf("%d bytes from %s icmp_seq=%d ttl=%d\n", \
+        printf("%d bytes from %s icmp_seq=%d ttl=%dms time=%.1f ms\n", \
             ntohs(ip_hdr->tot_len), \
             inet_ntoa(reply_addr.sin_addr), \
             icmp_reply->un.echo.sequence, \
-            ip_hdr->ttl
+            ip_hdr->ttl, \
+            rtt
         );
 
         sleep(interval);
