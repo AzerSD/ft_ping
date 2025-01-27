@@ -15,6 +15,13 @@
 
 #include "libft.h"
 
+// TODO
+// - [ ] Fix packet size why 28 bytes?
+// - [ ] Fix packet loss calculations
+// - [ ] Fix Running multiple pings at the same time
+// - [ ] Fix ping randomly stops receiving!!
+
+
 int interval = 1;
 int sig_int = false;
 
@@ -91,7 +98,6 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    // ping = malloc(sizeof(ping_t));
     ping.ping_hostname = argv[1];
 
     signal(SIGINT, handle_sigint);
@@ -138,11 +144,6 @@ int main(int argc, char *argv[])
         char buffer[1024];
         struct sockaddr_in reply_addr;
         socklen_t addr_len = sizeof(reply_addr);
-
-        // if (recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *)&reply_addr, &addr_len) < 0) {
-        //     printf("ping: error: %s\n", strerror(errno));
-        //     exit(EXIT_FAILURE);
-        // }
 
         struct msghdr msg;
         struct iovec iov[1];
