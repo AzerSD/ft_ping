@@ -11,6 +11,7 @@
 #include <argp.h>
 #include <stdbool.h>
 #include <signal.h>
+#include <errno.h>
 
 int interval = 1;
 int sig_int = false;
@@ -38,15 +39,20 @@ typedef struct ping {
     size_t ping_num_rept;
 } ping_t;
 
-ping_t *ping;
+ping_t ping = {
+    .ping_hostname = NULL,
+    .ping_num_xmit = 0,
+    .ping_num_recv = 0,
+    .ping_num_rept = 0
+};
 
-static int ping_finish(ping_t *ping)
+static int ping_finish(ping_t ping)
 {
-    printf("\n--- %s ping statistics ---\n", ping->ping_hostname);
+    printf("\n--- %s ping statistics ---\n", ping.ping_hostname);
     printf("%ld packets transmitted, %ld received, %ld%% packet loss\n", \
-        ping->ping_num_xmit, \
-        ping->ping_num_recv, \
-        (ping->ping_num_xmit - ping->ping_num_recv) / ping->ping_num_xmit * 100
+        ping.ping_num_xmit, \
+        ping.ping_num_recv, \
+        (ping.ping_num_xmit - ping.ping_num_recv) / ping.ping_num_xmit * 100
     );
     return 0;
 }
@@ -79,15 +85,12 @@ int main(int argc, char *argv[])
     int sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
     if (sockfd < 0)
     {
-        perror("Socket creation failed");
+        printf("ping: error: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
 
-    ping = malloc(sizeof(ping_t));
-    ping->ping_hostname = argv[1];
-    ping->ping_num_xmit = 0;
-    ping->ping_num_recv = 0;
-    ping->ping_num_rept = 0;
+    // ping = malloc(sizeof(ping_t));
+    ping.ping_hostname = argv[1];
 
     signal(SIGINT, handle_sigint);
 
@@ -127,7 +130,7 @@ int main(int argc, char *argv[])
             perror("Sendto failed");
             exit(EXIT_FAILURE);
         }
-        ping->ping_num_xmit++;
+        ping.ping_num_xmit++;
 
         // receive response
         char buffer[1024];
@@ -140,7 +143,7 @@ int main(int argc, char *argv[])
         }
 
         gettimeofday(&end_time, NULL);
-        ping->ping_num_recv++;
+        ping.ping_num_recv++;
         double rtt = calculate_rtt(start_time, end_time);
         struct iphdr *ip_hdr = (struct iphdr *)buffer;
         struct icmphdr *icmp_reply = (struct icmphdr *)(buffer + ip_hdr->ihl * 4);
