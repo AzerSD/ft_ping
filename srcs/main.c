@@ -13,6 +13,8 @@
 #include <signal.h>
 #include <errno.h>
 
+#include "libft.h"
+
 int interval = 1;
 int sig_int = false;
 
@@ -97,12 +99,12 @@ int main(int argc, char *argv[])
     // Resolve FQDN to IP
     struct addrinfo hints, *res;
     char ip_str[INET_ADDRSTRLEN];
-    memset(&hints, 0, sizeof(hints));
+    ft_memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_RAW;
 
     if (getaddrinfo(argv[1], NULL, &hints, &res) != 0) {
-        perror("ft_ping: getaddrinfo failed");
+        printf("ping: error: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -127,7 +129,7 @@ int main(int argc, char *argv[])
         dest_addr.sin_addr = addr->sin_addr;
 
         if (sendto(sockfd, &icmp_hdr, sizeof(icmp_hdr), 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) < 0) {
-            perror("Sendto failed");
+            printf("ping: error: %s\n", strerror(errno));
             exit(EXIT_FAILURE);
         }
         ping.ping_num_xmit++;
@@ -137,8 +139,22 @@ int main(int argc, char *argv[])
         struct sockaddr_in reply_addr;
         socklen_t addr_len = sizeof(reply_addr);
 
-        if (recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *)&reply_addr, &addr_len) < 0) {
-            perror("Recvfrom failed");
+        // if (recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *)&reply_addr, &addr_len) < 0) {
+        //     printf("ping: error: %s\n", strerror(errno));
+        //     exit(EXIT_FAILURE);
+        // }
+
+        struct msghdr msg;
+        struct iovec iov[1];
+        iov[0].iov_base = buffer;
+        iov[0].iov_len = sizeof(buffer);
+        ft_memset(&msg, 0, sizeof(msg));
+        msg.msg_name = &reply_addr;
+        msg.msg_namelen = addr_len;
+        msg.msg_iov = iov;
+        msg.msg_iovlen = 1;
+        if (recvmsg(sockfd, &msg, 0) < 0) {
+            printf("ping: error: %s\n", strerror(errno));
             exit(EXIT_FAILURE);
         }
 
@@ -149,7 +165,7 @@ int main(int argc, char *argv[])
         struct icmphdr *icmp_reply = (struct icmphdr *)(buffer + ip_hdr->ihl * 4);
         printf("%d bytes from %s icmp_seq=%d ttl=%dms time=%.1f ms\n", \
             ntohs(ip_hdr->tot_len), \
-            inet_ntoa(reply_addr.sin_addr), \
+            inet_ntop(AF_INET, &reply_addr.sin_addr, ip_str, sizeof(ip_str)), \
             icmp_reply->un.echo.sequence, \
             ip_hdr->ttl, \
             rtt
