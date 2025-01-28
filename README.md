@@ -42,13 +42,13 @@ To compile and run the `ft_ping` program, follow these steps:
    ./ft_ping <hostname>
 ```
 
+
 # Contributing
 Contributions are welcome! Please submit a pull request or open an issue for any improvements or bug fixes.
 
 License
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-Copy
 
 ### Customization
 
