@@ -17,10 +17,11 @@
 
 // TODO
 // - [x] Fix packet size why 28 bytes?
-// - [ ] Fix packet loss calculations
+// - [x] Fix packet loss calculations
 // - [ ] Fix Running multiple pings at the same time
-// - [ ] Fix ping randomly stops receiving!!
+// - [x] Fix ping randomly stops receiving!!
 // - [x] Fix "56(84) bytes of data" is hardcoded
+// - [ ] Time is missing from the finishing output 
 
 int interval = 1;
 int sig_int = false;
@@ -58,10 +59,10 @@ ping_t ping = {
 static int ping_finish(ping_t ping)
 {
     printf("\n--- %s ping statistics ---\n", ping.ping_hostname);
-    printf("%ld packets transmitted, %ld received, %ld%% packet loss\n", \
+    printf("%ld packets transmitted, %ld received, %.2f%% packet loss\n", \
         ping.ping_num_xmit, \
         ping.ping_num_recv, \
-        (ping.ping_num_xmit - ping.ping_num_recv) / ping.ping_num_xmit * 100
+        ((float)(ping.ping_num_xmit - ping.ping_num_recv) / ping.ping_num_xmit) * 100
     );
     return 0;
 }
@@ -122,14 +123,12 @@ int main(int argc, char *argv[])
     struct sockaddr_in *addr = (struct sockaddr_in *)res->ai_addr;
     inet_ntop(AF_INET, &(addr->sin_addr), ip_str, sizeof(ip_str));
     int sequence_nb = 1;
-    printf("PING %s (%s) %d(%d) bytes of data.\n", argv[1], ip_str, ICMP_PAYLOAD_SIZE, ICMP_PAYLOAD_SIZE + sizeof(struct icmphdr) + sizeof(struct iphdr));
+    printf("PING %s (%s) %d(%ld) bytes of data.\n", argv[1], ip_str, ICMP_PAYLOAD_SIZE, ICMP_PAYLOAD_SIZE + sizeof(struct icmphdr) + sizeof(struct iphdr));
+    
     
     while (1) {
         struct timeval start_time, end_time;
         gettimeofday(&start_time, NULL);
-
-        // Create a buffer for the full packet
-        
 
         struct icmphdr icmp_hdr;
         icmp_hdr.type = ICMP_ECHO;
@@ -155,6 +154,15 @@ int main(int argc, char *argv[])
         dest_addr.sin_family = AF_INET;
         dest_addr.sin_addr = addr->sin_addr;
 
+
+        struct timeval timeout;
+        timeout.tv_sec = 2;  // 1 second timeout
+        timeout.tv_usec = 0;
+        if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
+            perror("setsockopt failed");
+            exit(EXIT_FAILURE);
+        }
+
         if (sendto(sockfd, packet, packet_size, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) < 0) {
             printf("ping: error: %s\n", strerror(errno));
             exit(EXIT_FAILURE);
@@ -177,10 +185,14 @@ int main(int argc, char *argv[])
         msg.msg_iov = iov;
         msg.msg_iovlen = 1;
 
-        if (recvmsg(sockfd, &msg, 0) < 0) {
+    if (recvmsg(sockfd, &msg, 0) < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            continue;
+        } else {
             printf("ping: error: %s\n", strerror(errno));
             exit(EXIT_FAILURE);
         }
+    }
 
         gettimeofday(&end_time, NULL);
         ping.ping_num_recv++;
