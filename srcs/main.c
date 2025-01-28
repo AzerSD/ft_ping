@@ -15,39 +15,24 @@
 
 #define ICMP_PAYLOAD_SIZE 56
 
-// TODO
-// - [x] Fix packet size why 28 bytes?
-// - [x] Fix packet loss calculations
-// - [ ] Fix Running multiple pings at the same time
-// - [x] Fix ping randomly stops receiving!!
-// - [x] Fix "56(84) bytes of data" is hardcoded
-// - [ ] Time is missing from the finishing output 
-
-int interval = 1;
-int sig_int = false;
-
-static unsigned short calculate_checksum(void *b, int len)
-{   
-    unsigned short *buf = b;
-    unsigned int sum=0;
-    unsigned short result;
- 
-    for ( sum = 0; len > 1; len -= 2 )
-        sum += *buf++;
-    if ( len == 1 )
-        sum += *(unsigned char*)buf;
-    sum = (sum >> 16) + (sum & 0xFFFF);
-    sum += (sum >> 16);
-    result = ~sum;
-    return result;
-}
-
 typedef struct ping {
     char *ping_hostname;
     size_t ping_num_xmit;
     size_t ping_num_recv;
     size_t ping_num_rept;
+    struct timeval start_time;
+    struct timeval end_time;
 } ping_t;
+
+
+typedef struct icmp_payload {
+    struct timeval timestamp;
+    char data[ICMP_PAYLOAD_SIZE - sizeof(struct timeval)];
+} icmp_payload_t;
+
+
+int interval = 1;
+int sig_int = false;
 
 ping_t ping = {
     .ping_hostname = NULL,
@@ -56,32 +41,21 @@ ping_t ping = {
     .ping_num_rept = 0
 };
 
-static int ping_finish(ping_t ping)
-{
-    printf("\n--- %s ping statistics ---\n", ping.ping_hostname);
-    printf("%ld packets transmitted, %ld received, %.2f%% packet loss\n", \
-        ping.ping_num_xmit, \
-        ping.ping_num_recv, \
-        ((float)(ping.ping_num_xmit - ping.ping_num_recv) / ping.ping_num_xmit) * 100
-    );
-    return 0;
-}
 
-static void handle_sigint(int sig)
-{
-    sig_int = true;
-    ping_finish(ping);
-    exit(EXIT_SUCCESS);
-}
+static unsigned short calculate_checksum(void *b, int len);
+static int ping_finish(ping_t *ping);
+static void handle_sigint(int sig);
+static double calculate_rtt(struct timeval start, struct timeval end);
 
-double calculate_rtt(struct timeval start, struct timeval end) {
-    return (end.tv_sec - start.tv_sec) * 1000.0 + (end.tv_usec - start.tv_usec) / 1000.0;
-}
 
-typedef struct icmp_payload {
-    struct timeval timestamp;
-    char data[ICMP_PAYLOAD_SIZE - sizeof(struct timeval)];
-} icmp_payload_t;
+// TODO
+// - [x] Fix packet size why 28 bytes?
+// - [x] Fix packet loss calculations
+// - [ ] Fix Running multiple pings at the same time
+// - [x] Fix ping randomly stops receiving!!
+// - [x] Fix "56(84) bytes of data" is hardcoded
+// - [x] Time is missing from the finishing output 
+// - [x] Re-order the file
 
 int main(int argc, char *argv[])
 {
@@ -125,11 +99,12 @@ int main(int argc, char *argv[])
     int sequence_nb = 1;
     printf("PING %s (%s) %d(%ld) bytes of data.\n", argv[1], ip_str, ICMP_PAYLOAD_SIZE, ICMP_PAYLOAD_SIZE + sizeof(struct icmphdr) + sizeof(struct iphdr));
     
+     gettimeofday(&ping.start_time, NULL); // Record the start time
     
     while (1) {
         struct timeval start_time, end_time;
         gettimeofday(&start_time, NULL);
-
+        
         struct icmphdr icmp_hdr;
         icmp_hdr.type = ICMP_ECHO;
         icmp_hdr.code = 0;
@@ -215,6 +190,51 @@ int main(int argc, char *argv[])
     }
 
     return 0;
+}
+
+
+static unsigned short calculate_checksum(void *b, int len)
+{   
+    unsigned short *buf = b;
+    unsigned int sum=0;
+    unsigned short result;
+ 
+    for ( sum = 0; len > 1; len -= 2 )
+        sum += *buf++;
+    if ( len == 1 )
+        sum += *(unsigned char*)buf;
+    sum = (sum >> 16) + (sum & 0xFFFF);
+    sum += (sum >> 16);
+    result = ~sum;
+    return result;
+}
+
+
+static int ping_finish(ping_t *ping) {
+    gettimeofday(&ping->end_time, NULL);
+    double total_time = (ping->end_time.tv_sec - ping->start_time.tv_sec) * 1000.0 + (ping->end_time.tv_usec - ping->start_time.tv_usec) / 1000.0;
+
+    printf("\n--- %s ping statistics ---\n", ping->ping_hostname);
+    printf("%ld packets transmitted, %ld received, %.2f%% packet loss, time %.0fms\n", \
+        ping->ping_num_xmit, \
+        ping->ping_num_recv, \
+        ((float)(ping->ping_num_xmit - ping->ping_num_recv) / ping->ping_num_xmit) * 100, \
+        total_time
+    );
+    return 0;
+}
+
+
+static void handle_sigint(int sig)
+{
+    sig_int = true;
+    ping_finish(&ping);
+    exit(EXIT_SUCCESS);
+}
+
+
+double calculate_rtt(struct timeval start, struct timeval end) {
+    return (end.tv_sec - start.tv_sec) * 1000.0 + (end.tv_usec - start.tv_usec) / 1000.0;
 }
 
 
