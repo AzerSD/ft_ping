@@ -42,7 +42,7 @@ To compile and run the `ft_ping` program, follow these steps:
    ./ft_ping <hostname>
 ```
 
-Contributing
+# Contributing
 Contributions are welcome! Please submit a pull request or open an issue for any improvements or bug fixes.
 
 License
