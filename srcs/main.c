@@ -16,7 +16,7 @@
 #define ICMP_PAYLOAD_SIZE 56
 
 // TODO
-// - [ ] Fix packet size why 28 bytes?
+// - [x] Fix packet size why 28 bytes?
 // - [ ] Fix packet loss calculations
 // - [ ] Fix Running multiple pings at the same time
 // - [ ] Fix ping randomly stops receiving!!
@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
         struct icmphdr *icmp_reply = (struct icmphdr *)(buffer + ip_hdr->ihl * 4);
 
         printf("%d bytes from %s icmp_seq=%d ttl=%dms time=%.1f ms\n", \
-            ntohs(ip_hdr->tot_len),
+            ntohs(ip_hdr->tot_len) - ip_hdr->ihl * 4,
             inet_ntop(AF_INET, &reply_addr.sin_addr, ip_str, sizeof(ip_str)), \
             icmp_reply->un.echo.sequence, \
             ip_hdr->ttl, \
