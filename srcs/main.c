@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
         icmp_hdr.code = 0;
         icmp_hdr.checksum = 0;
         icmp_hdr.un.echo.id = getpid();
-        icmp_hdr.un.echo.sequence = sequence_nb++;
+        icmp_hdr.un.echo.sequence = htons(sequence_nb++);
 
         icmp_payload_t payload;
         gettimeofday(&payload.timestamp, NULL);
@@ -160,14 +160,14 @@ int main(int argc, char *argv[])
         msg.msg_iov = iov;
         msg.msg_iovlen = 1;
 
-    if (recvmsg(sockfd, &msg, 0) < 0) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            continue;
-        } else {
-            printf("ping: error: %s\n", strerror(errno));
-            exit(EXIT_FAILURE);
+        if (recvmsg(sockfd, &msg, 0) < 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                continue;
+            } else {
+                printf("ping: error: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
+            }
         }
-    }
 
         gettimeofday(&end_time, NULL);
         ping.ping_num_recv++;
@@ -178,16 +178,21 @@ int main(int argc, char *argv[])
         struct iphdr *ip_hdr = (struct iphdr *)buffer;
         struct icmphdr *icmp_reply = (struct icmphdr *)(buffer + ip_hdr->ihl * 4);
 
-        if (icmp_reply->type == ICMP_DEST_UNREACH) {
+        if (icmp_reply->type == ICMP_DEST_UNREACH)
+        {
+            struct iphdr *original_ip = (struct iphdr *)(buffer + ip_hdr->ihl * 4 + sizeof(struct icmphdr));
+            struct icmphdr *original_icmp = (struct icmphdr *)((char *)original_ip + (original_ip->ihl * 4));
+
             printf("From %s icmp_seq=%d Destination Host Unreachable\n",
                 inet_ntop(AF_INET, &reply_addr.sin_addr, ip_str, sizeof(ip_str)),
-                icmp_reply->un.echo.sequence);
-        } else {
+                ntohs(original_icmp->un.echo.sequence));
+        } else
+        {
             double rtt = calculate_rtt(start_time, end_time);
             printf("%d bytes from %s icmp_seq=%d ttl=%d time=%.1f ms\n",
                 ntohs(ip_hdr->tot_len) - ip_hdr->ihl * 4,
                 inet_ntop(AF_INET, &reply_addr.sin_addr, ip_str, sizeof(ip_str)),
-                icmp_reply->un.echo.sequence,
+                ntohs(icmp_reply->un.echo.sequence),
                 ip_hdr->ttl,
                 rtt);
         }
