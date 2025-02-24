@@ -54,7 +54,7 @@ static double calculate_rtt(struct timeval start, struct timeval end);
 // - [ ] Fix Running multiple pings at the same time
 // - [x] Fix ping randomly stops receiving!!
 // - [x] Fix "56(84) bytes of data" is hardcoded
-// - [x] Time is missing from the finishing output 
+// - [x] Time is missing from the finishing output
 // - [x] Re-order the file
 
 int main(int argc, char *argv[])
@@ -178,13 +178,19 @@ int main(int argc, char *argv[])
         struct iphdr *ip_hdr = (struct iphdr *)buffer;
         struct icmphdr *icmp_reply = (struct icmphdr *)(buffer + ip_hdr->ihl * 4);
 
-        printf("%d bytes from %s icmp_seq=%d ttl=%dms time=%.1f ms\n", \
-            ntohs(ip_hdr->tot_len) - ip_hdr->ihl * 4,
-            inet_ntop(AF_INET, &reply_addr.sin_addr, ip_str, sizeof(ip_str)), \
-            icmp_reply->un.echo.sequence, \
-            ip_hdr->ttl, \
-            rtt
-        );
+        if (icmp_reply->type == ICMP_DEST_UNREACH) {
+            printf("From %s icmp_seq=%d Destination Host Unreachable\n",
+                inet_ntop(AF_INET, &reply_addr.sin_addr, ip_str, sizeof(ip_str)),
+                icmp_reply->un.echo.sequence);
+        } else {
+            double rtt = calculate_rtt(start_time, end_time);
+            printf("%d bytes from %s icmp_seq=%d ttl=%d time=%.1f ms\n",
+                ntohs(ip_hdr->tot_len) - ip_hdr->ihl * 4,
+                inet_ntop(AF_INET, &reply_addr.sin_addr, ip_str, sizeof(ip_str)),
+                icmp_reply->un.echo.sequence,
+                ip_hdr->ttl,
+                rtt);
+        }
 
         sleep(interval);
     }
