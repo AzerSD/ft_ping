@@ -31,9 +31,6 @@ typedef struct icmp_payload {
 } icmp_payload_t;
 
 
-int interval = 1;
-int sig_int = false;
-
 ping_t ping = {
     .ping_hostname = NULL,
     .ping_num_xmit = 0,
@@ -47,15 +44,6 @@ static int ping_finish(ping_t *ping);
 static void handle_sigint(int sig);
 static double calculate_rtt(struct timeval start, struct timeval end);
 
-
-// TODO
-// - [x] Fix packet size why 28 bytes?
-// - [x] Fix packet loss calculations
-// - [ ] Fix Running multiple pings at the same time
-// - [x] Fix ping randomly stops receiving!!
-// - [x] Fix "56(84) bytes of data" is hardcoded
-// - [x] Time is missing from the finishing output
-// - [x] Re-order the file
 
 int main(int argc, char *argv[])
 {
@@ -71,6 +59,7 @@ int main(int argc, char *argv[])
     int count = 0;
     int ttl = -1;
     int numeric = 0;
+    int interval = 1;
     int payload_size = ICMP_PAYLOAD_SIZE;
 
     ArgParser parser;
@@ -78,6 +67,7 @@ int main(int argc, char *argv[])
 
     add_option(&parser, "-v", "--verbose", ARGTYPE_FLAG, &verbose);
     add_option(&parser, "-?", "--help", ARGTYPE_FLAG, &show_help);
+    add_option(&parser, "-h", "--help", ARGTYPE_FLAG, &show_help);
     add_option(&parser, "-c", "--count", ARGTYPE_INT, &count);
     add_option(&parser, "-i", "--interval", ARGTYPE_INT, &interval);
     add_option(&parser, "-s", "--size", ARGTYPE_INT, &payload_size);
@@ -95,6 +85,7 @@ int main(int argc, char *argv[])
         printf("      --ttl TTL        Set time-to-live\n");
         printf("  -n, --numeric        Do not resolve hostnames\n");
         printf("  -?, --help           Show this help message\n");
+        printf("  -h, --help           Show this help message\n");
         exit(EXIT_SUCCESS);
     }
 
@@ -228,7 +219,7 @@ int main(int argc, char *argv[])
         } else {
             double rtt = calculate_rtt(start_time, end_time);
             printf("%d bytes from %s icmp_seq=%d ttl=%d time=%.1f ms\n",
-                ntohs(ip_hdr->tot_len) - ip_hdr->ihl * 4,
+                ntohs(ip_hdr->tot_len) - (ip_hdr->ihl * 4),
                 inet_ntop(AF_INET, &reply_addr.sin_addr, ip_str, sizeof(ip_str)),
                 ntohs(icmp_reply->un.echo.sequence),
                 ip_hdr->ttl,
@@ -265,14 +256,13 @@ static unsigned short calculate_checksum(void *b, int len)
 
 static int ping_finish(ping_t *ping) {
     gettimeofday(&ping->end_time, NULL);
-    double total_time = (ping->end_time.tv_sec - ping->start_time.tv_sec) * 1000.0 + (ping->end_time.tv_usec - ping->start_time.tv_usec) / 1000.0;
+    // double total_time = (ping->end_time.tv_sec - ping->start_time.tv_sec) * 1000.0 + (ping->end_time.tv_usec - ping->start_time.tv_usec) / 1000.0;
 
     printf("\n--- %s ping statistics ---\n", ping->ping_hostname);
-    printf("%ld packets transmitted, %ld received, %.2f%% packet loss, time %.0fms\n", \
+    printf("%ld packets transmitted, %ld received, %.2f%% packet loss\n", \
         ping->ping_num_xmit, \
         ping->ping_num_recv, \
-        ((float)(ping->ping_num_xmit - ping->ping_num_recv) / ping->ping_num_xmit) * 100, \
-        total_time
+        ((float)(ping->ping_num_xmit - ping->ping_num_recv) / ping->ping_num_xmit) * 100
     );
     return 0;
 }
