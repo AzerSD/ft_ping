@@ -72,7 +72,6 @@ int main(int argc, char *argv[])
     add_option(&parser, "-c", "--count", ARGTYPE_INT, &count);
     add_option(&parser, "-i", "--interval", ARGTYPE_INT, &interval);
     add_option(&parser, "-s", "--size", ARGTYPE_INT, &payload_size);
-    add_option(&parser, "--ttl", "--ttl", ARGTYPE_INT, &ttl);
     add_option(&parser, "-n", "--numeric", ARGTYPE_FLAG, &numeric);
 
     parse_arguments(&parser, argc, argv);
@@ -83,7 +82,6 @@ int main(int argc, char *argv[])
         printf("  -c, --count COUNT    Stop after sending <count> packets\n");
         printf("  -i, --interval SECS  Interval between packets\n");
         printf("  -s, --size SIZE      Payload size in bytes\n");
-        printf("      --ttl TTL        Set time-to-live\n");
         printf("  -n, --numeric        Do not resolve hostnames\n");
         printf("  -?, --help           Show this help message\n");
         printf("  -h, --help           Show this help message\n");
@@ -127,14 +125,14 @@ int main(int argc, char *argv[])
         printf("PING %s (%s): %d data bytes, id 0x%x = %d\n",
             ping.ping_hostname,
             ip_str,
-            ICMP_PAYLOAD_SIZE,
+            payload_size,
             getpid(),
             getpid());
     } else {
         printf("PING %s (%s): %d bytes of data\n",
             ping.ping_hostname,
             ip_str,
-            ICMP_PAYLOAD_SIZE);
+            payload_size);
     }
 
     gettimeofday(&ping.start_time, NULL); // Record the start time
@@ -151,26 +149,16 @@ int main(int argc, char *argv[])
         icmp_hdr.un.echo.sequence = htons(sequence_nb++);
         
         
-        typedef struct icmp_payload {
-            struct timeval timestamp;
-            char data[ICMP_PAYLOAD_SIZE - sizeof(struct timeval)];
-        } icmp_payload_t;
-
-        icmp_payload_t payload;
-        gettimeofday(&payload.timestamp, NULL);
-        memcpy(payload.data, "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxxx", sizeof(payload.data));
-        
-        // size_t payload_total_size = sizeof(struct timeval) + payload_size;
-        // size_t packet_size = sizeof(struct icmphdr) + sizeof(payload_total_size);
-        // struct timeval *payload_time = (struct timeval *)(packet + sizeof(struct icmphdr));
-        // gettimeofday(payload_time, NULL);
-        size_t packet_size = sizeof(struct icmphdr) + sizeof(payload);
+        size_t payload_total_size = payload_size;
+        size_t packet_size = sizeof(struct icmphdr) + payload_total_size;
         char *packet = malloc(packet_size);
         if (!packet) exit(EXIT_FAILURE);
 
-        memcpy(packet, &icmp_hdr, sizeof(icmp_hdr));
-        memcpy(packet + sizeof(icmp_hdr), &payload, sizeof(payload));
+        struct timeval *payload_time = (struct timeval *)(packet + sizeof(struct icmphdr));
+        gettimeofday(payload_time, NULL);
+        memset(packet + sizeof(struct icmphdr) + sizeof(struct timeval), 'x', payload_size);
 
+        memcpy(packet, &icmp_hdr, sizeof(icmp_hdr));
         ((struct icmphdr *)packet)->checksum = calculate_checksum(packet, packet_size);
 
         // Send ICMP packet
