@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 
     struct sockaddr_in *addr = (struct sockaddr_in *)res->ai_addr;
     inet_ntop(AF_INET, &(addr->sin_addr), ip_str, sizeof(ip_str));
-    int sequence_nb = 1;
+    int sequence_nb = 0;
     if (verbose) {
         printf("PING %s (%s): %d data bytes, id 0x%x = %d\n",
             ping.ping_hostname,
