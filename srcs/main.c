@@ -92,8 +92,8 @@ int main(int argc, char *argv[])
 
     // Require 1 positional argument: hostname
     if (parser.positional_count < 1) {
-        fprintf(stderr, "ft_ping: missing host operrand.\n");
-        fprintf(stderr, "Usage: sudo ./ft_ping [-v] [-?] <hostname>\n");
+        fprintf(stderr, "ft_ping: missing host operand.\n");
+        fprintf(stderr, "Usage: sudo ./ft_ping [-h] [-?] <hostname>\n");
         exit(EXIT_FAILURE);
     }
 
@@ -291,13 +291,3 @@ double calculate_rtt(struct timeval start, struct timeval end) {
     return (end.tv_sec - start.tv_sec) * 1000.0 + (end.tv_usec - start.tv_usec) / 1000.0;
 }
 
-
-// 0000   00 00 00 01 00 06 d4 3f cb 9e 70 aa 08 05 08 00   .......?..p.....
-// 0010   45 e0 00 54 00 00 00 00 74 01 74 83 08 08 08 08   E..T....t.t.....
-// 0020   c0 a8 00 8e 00 00 7e f4 00 07 00 01 27 af 98 67   ......~.....'..g
-// 0030   00 00 00 00 01 1a 01 00 00 00 00 00 10 11 12 13   ................
-// 0040   14 15 16 17 18 19 1a 1b 1c 1d 1e 1f 20 21 22 23   ............ !"#
-// 0050   24 25 26 27 28 29 2a 2b 2c 2d 2e 2f 30 31 32 33   $%&'()*+,-./0123
-// 0060   34 35 36 37                                       4567
-
-// 50 bytes
