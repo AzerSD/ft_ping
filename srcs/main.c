@@ -150,17 +150,28 @@ int main(int argc, char *argv[])
         icmp_hdr.checksum = 0;
         icmp_hdr.un.echo.id = getpid();
         icmp_hdr.un.echo.sequence = htons(sequence_nb++);
-
         
-        size_t payload_total_size = sizeof(struct timeval) + payload_size;
-        size_t packet_size = sizeof(struct icmphdr) + sizeof(payload_total_size);
+        
+        typedef struct icmp_payload {
+            struct timeval timestamp;
+            char data[ICMP_PAYLOAD_SIZE - sizeof(struct timeval)];
+        } icmp_payload_t;
+
+        icmp_payload_t payload;
+        gettimeofday(&payload.timestamp, NULL);
+        memcpy(payload.data, "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxxx", sizeof(payload.data));
+        
+        // size_t payload_total_size = sizeof(struct timeval) + payload_size;
+        // size_t packet_size = sizeof(struct icmphdr) + sizeof(payload_total_size);
+        // struct timeval *payload_time = (struct timeval *)(packet + sizeof(struct icmphdr));
+        // gettimeofday(payload_time, NULL);
+        size_t packet_size = sizeof(struct icmphdr) + sizeof(payload);
         char *packet = malloc(packet_size);
         if (!packet) exit(EXIT_FAILURE);
 
-        struct timeval *payload_time = (struct timeval *)(packet + sizeof(struct icmphdr));
-        gettimeofday(payload_time, NULL);
-        memset(packet + sizeof(struct icmphdr) + sizeof(struct timeval), 'x', payload_size);
         memcpy(packet, &icmp_hdr, sizeof(icmp_hdr));
+        memcpy(packet + sizeof(icmp_hdr), &payload, sizeof(payload));
+
         ((struct icmphdr *)packet)->checksum = calculate_checksum(packet, packet_size);
 
         // Send ICMP packet
