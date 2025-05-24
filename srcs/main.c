@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
                 ntohs(original_icmp->un.echo.sequence));
         } else {
             double rtt = calculate_rtt(start_time, end_time);
-            printf("%d bytes from %s icmp_seq=%d ttl=%d time=%.1f ms\n",
+            printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
                 ntohs(ip_hdr->tot_len) - (ip_hdr->ihl * 4),
                 inet_ntop(AF_INET, &reply_addr.sin_addr, ip_str, sizeof(ip_str)),
                 ntohs(icmp_reply->un.echo.sequence),
