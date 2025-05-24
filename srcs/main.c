@@ -131,11 +131,10 @@ int main(int argc, char *argv[])
             getpid(),
             getpid());
     } else {
-        printf("PING %s (%s) %d(%ld) bytes of data\n",
+        printf("PING %s (%s) %d bytes of data\n",
             ping.ping_hostname,
             ip_str,
-            ICMP_PAYLOAD_SIZE,
-            ICMP_PAYLOAD_SIZE + sizeof(struct icmphdr) + sizeof(struct iphdr));
+            ICMP_PAYLOAD_SIZE);
     }
 
     gettimeofday(&ping.start_time, NULL); // Record the start time
