@@ -69,6 +69,10 @@ int main(int argc, char *argv[])
     int verbose = 0;
     int show_help = 0;
     int count = 0;
+    int ttl = -1;
+    int numeric = 0;
+    int payload_size = ICMP_PAYLOAD_SIZE;
+
     ArgParser parser;
     init_arg_parser(&parser);
 
@@ -76,15 +80,21 @@ int main(int argc, char *argv[])
     add_option(&parser, "-?", "--help", ARGTYPE_FLAG, &show_help);
     add_option(&parser, "-c", "--count", ARGTYPE_INT, &count);
     add_option(&parser, "-i", "--interval", ARGTYPE_INT, &interval);
+    add_option(&parser, "-s", "--size", ARGTYPE_INT, &payload_size);
+    add_option(&parser, "--ttl", "--ttl", ARGTYPE_INT, &ttl);
+    add_option(&parser, "-n", "--numeric", ARGTYPE_FLAG, &numeric);
 
     parse_arguments(&parser, argc, argv);
 
     if (show_help) {
         printf("Usage: sudo ./ft_ping [-v] [-?] <hostname>\n");
-        printf("  -v, --verbose   Show extra error information (e.g., unreachable hosts)\n");
-        printf("  -c, --count     Stop after sending <count> packets\n");
-        printf("  -i, --interval  Wait <interval> seconds between sending each packet\n");
-        printf("  -?, --help      Show this help message\n");
+        printf("  -v, --verbose        Show extra error information (e.g., unreachable hosts)\n");
+        printf("  -c, --count COUNT    Stop after sending <count> packets\n");
+        printf("  -i, --interval SECS  Interval between packets\n");
+        printf("  -s, --size SIZE      Payload size in bytes\n");
+        printf("      --ttl TTL        Set time-to-live\n");
+        printf("  -n, --numeric        Do not resolve hostnames\n");
+        printf("  -?, --help           Show this help message\n");
         exit(EXIT_SUCCESS);
     }
 
@@ -137,7 +147,7 @@ int main(int argc, char *argv[])
     }
 
     gettimeofday(&ping.start_time, NULL); // Record the start time
-    
+
     while (count == 0 || ping.ping_num_xmit < (size_t)count) {
         struct timeval start_time, end_time;
         gettimeofday(&start_time, NULL);
@@ -149,15 +159,16 @@ int main(int argc, char *argv[])
         icmp_hdr.un.echo.id = getpid();
         icmp_hdr.un.echo.sequence = htons(sequence_nb++);
 
-        icmp_payload_t payload;
-        gettimeofday(&payload.timestamp, NULL);
-        memcpy(payload.data, "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxxx", sizeof(payload.data));
+        
+        size_t payload_total_size = sizeof(struct timeval) + payload_size;
+        size_t packet_size = sizeof(struct icmphdr) + sizeof(payload_total_size);
+        char *packet = malloc(packet_size);
+        if (!packet) exit(EXIT_FAILURE);
 
-        size_t packet_size = sizeof(struct icmphdr) + sizeof(payload);
-        char packet[packet_size];
-
+        struct timeval *payload_time = (struct timeval *)(packet + sizeof(struct icmphdr));
+        gettimeofday(payload_time, NULL);
+        memset(packet + sizeof(struct icmphdr) + sizeof(struct timeval), 'x', payload_size);
         memcpy(packet, &icmp_hdr, sizeof(icmp_hdr));
-        memcpy(packet + sizeof(icmp_hdr), &payload, sizeof(payload));
         ((struct icmphdr *)packet)->checksum = calculate_checksum(packet, packet_size);
 
         // Send ICMP packet
@@ -171,8 +182,9 @@ int main(int argc, char *argv[])
         setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 
         if (sendto(sockfd, packet, packet_size, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) < 0) {
-            printf("ping: error: %s\n", strerror(errno));
-            exit(EXIT_FAILURE);
+            perror("sendto");
+            free(packet);
+            continue;
         }
         ping.ping_num_xmit++;
 
@@ -223,7 +235,7 @@ int main(int argc, char *argv[])
                 rtt);
         }
 
-        if (sig_int) break;
+        free(packet);
         sleep(interval);
     }
 
