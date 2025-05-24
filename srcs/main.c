@@ -84,6 +84,7 @@ int main(int argc, char *argv[])
 
     // Require 1 positional argument: hostname
     if (parser.positional_count < 1) {
+        fprintf(stderr, "ft_ping: missing host operrand.\n");
         fprintf(stderr, "Usage: sudo ./ft_ping [-v] [-?] <hostname>\n");
         exit(EXIT_FAILURE);
     }
@@ -114,9 +115,22 @@ int main(int argc, char *argv[])
     struct sockaddr_in *addr = (struct sockaddr_in *)res->ai_addr;
     inet_ntop(AF_INET, &(addr->sin_addr), ip_str, sizeof(ip_str));
     int sequence_nb = 1;
-    printf("PING %s (%s) %d(%ld) bytes of data.\n", argv[1], ip_str, ICMP_PAYLOAD_SIZE, ICMP_PAYLOAD_SIZE + sizeof(struct icmphdr) + sizeof(struct iphdr));
-    
-     gettimeofday(&ping.start_time, NULL); // Record the start time
+    if (verbose) {
+        printf("PING %s (%s): %d data bytes, id 0x%x = %d\n",
+            ping.ping_hostname,
+            ip_str,
+            ICMP_PAYLOAD_SIZE,
+            getpid(),
+            getpid());
+    } else {
+        printf("PING %s (%s) %d(%ld) bytes of data.\n",
+            ping.ping_hostname,
+            ip_str,
+            ICMP_PAYLOAD_SIZE,
+            ICMP_PAYLOAD_SIZE + sizeof(struct icmphdr) + sizeof(struct iphdr));
+    }
+
+    gettimeofday(&ping.start_time, NULL); // Record the start time
     
     while (1) {
         struct timeval start_time, end_time;
