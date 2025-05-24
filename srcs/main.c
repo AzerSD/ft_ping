@@ -82,6 +82,7 @@ int main(int argc, char *argv[])
         exit(EXIT_SUCCESS);
     }
 
+    // Require 1 positional argument: hostname
     if (parser.positional_count < 1) {
         fprintf(stderr, "Usage: sudo ./ft_ping [-v] [-?] <hostname>\n");
         exit(EXIT_FAILURE);
@@ -90,13 +91,9 @@ int main(int argc, char *argv[])
     ping.ping_hostname = parser.positional_args[0];
 
     int sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
-    if (sockfd < 0) {
-        perror("ping: socket creation failed");
-        exit(EXIT_FAILURE);
-    }
-
-    if (verbose && parser.positional_count < 1) {
-        fprintf(stderr, "Usage: sudo ./ft_ping [-v] [-?] <hostname>\n");
+    if (sockfd < 0)
+    {
+        printf("ping: error: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -109,7 +106,7 @@ int main(int argc, char *argv[])
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_RAW;
 
-    if (getaddrinfo(argv[1], NULL, &hints, &res) != 0) {
+    if (getaddrinfo(ping.ping_hostname ,NULL, &hints, &res) != 0) {
         printf("ping: error: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
