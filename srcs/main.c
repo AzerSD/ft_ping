@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
             getpid(),
             getpid());
     } else {
-        printf("PING %s (%s) %d bytes of data\n",
+        printf("PING %s (%s): %d bytes of data\n",
             ping.ping_hostname,
             ip_str,
             ICMP_PAYLOAD_SIZE);
@@ -270,10 +270,10 @@ static int ping_finish(ping_t *ping) {
     // double total_time = (ping->end_time.tv_sec - ping->start_time.tv_sec) * 1000.0 + (ping->end_time.tv_usec - ping->start_time.tv_usec) / 1000.0;
 
     printf("\n--- %s ping statistics ---\n", ping->ping_hostname);
-    printf("%ld packets transmitted, %ld received, %.2f%% packet loss\n", \
+    printf("%ld packets transmitted, %ld received, %ld%% packet loss\n", \
         ping->ping_num_xmit, \
         ping->ping_num_recv, \
-        ((float)(ping->ping_num_xmit - ping->ping_num_recv) / ping->ping_num_xmit) * 100
+        ((ping->ping_num_xmit - ping->ping_num_recv) / ping->ping_num_xmit) * 100
     );
     return 0;
 }
