@@ -35,6 +35,7 @@ int interval = 1;
 int sig_int = false;
 
 ping_t ping = {
+    .verbose = false,
     .ping_hostname = NULL,
     .ping_num_xmit = 0,
     .ping_num_recv = 0,
@@ -59,17 +60,36 @@ static double calculate_rtt(struct timeval start, struct timeval end);
 
 int main(int argc, char *argv[])
 {
+
     if (getuid() != 0)
     {
         fprintf(stderr, "ft_ping: You need to be root to run this program\n");
         exit(EXIT_FAILURE);
     }
 
-    if (argc != 2)
-    {
-        fprintf(stderr, "Usage: %s <hostname>\n", argv[0]);
+    int verbose = 0;
+    int show_help = 0;
+    ArgParser parser;
+    init_arg_parser(&parser);
+
+    add_option(&parser, "-v", "--verbose", ARGTYPE_FLAG, &verbose);
+    add_option(&parser, "-?", "--help", ARGTYPE_FLAG, &show_help);
+    parse_arguments(&parser, argc, argv);
+
+    if (show_help) {
+        printf("Usage: sudo ./ft_ping [-v] [-?] <hostname>\n");
+        printf("  -v, --verbose   Show extra error information (e.g., unreachable hosts)\n");
+        printf("  -?, --help      Show this help message\n");
+        exit(EXIT_SUCCESS);
+    }
+
+    // Require 1 positional argument: hostname
+    if (parser.positional_count < 1) {
+        fprintf(stderr, "Usage: sudo ./ft_ping [-v] [-?] <hostname>\n");
         exit(EXIT_FAILURE);
     }
+
+    ping.ping_hostname = parser.positional_args[0];
 
     int sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
     if (sockfd < 0)
