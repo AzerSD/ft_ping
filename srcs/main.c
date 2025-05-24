@@ -30,6 +30,7 @@ typedef struct icmp_payload {
     char data[ICMP_PAYLOAD_SIZE - sizeof(struct timeval)];
 } icmp_payload_t;
 
+int sig_int = false;
 
 ping_t ping = {
     .ping_hostname = NULL,
