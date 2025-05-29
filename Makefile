@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: userr <userr@student.42.fr>                +#+  +:+       +#+         #
+#    By: asioud <asioud@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/10/20 04:17:53 by asioud            #+#    #+#              #
-#    Updated: 2025/01/16 08:06:25 by userr            ###   ########.fr        #
+#    Updated: 2025/05/29 14:12:53 by asioud           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -39,7 +39,7 @@ all:	$(NAME)
 
 $(NAME): $(LIBFT) $(OBJS)
 	cd libs/libft && make
-	$(CC) $(HFILES) $(CFLAGS) $(OBJS) $(LIBFT) -o $(NAME)
+	$(CC) $(HFILES) $(SANITIZE) $(CFLAGS) $(OBJS) $(LIBFT) -o $(NAME)
 
 
 $(OBJ_DIR)%.o : $(SRC_DIR)%.c
