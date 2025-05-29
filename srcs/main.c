@@ -148,16 +148,24 @@ int main(int argc, char *argv[])
         icmp_hdr.un.echo.id = getpid();
         icmp_hdr.un.echo.sequence = htons(sequence_nb++);
         
-        
+        if (payload_size < sizeof(struct timeval)) {
+            fprintf(stderr, "Payload size must be at least %zu bytes\n", sizeof(struct timeval));
+            exit(EXIT_FAILURE);
+        }
+
         size_t payload_total_size = payload_size;
         size_t packet_size = sizeof(struct icmphdr) + payload_total_size;
+
         char *packet = malloc(packet_size);
-        if (!packet) exit(EXIT_FAILURE);
+        if (!packet) {
+            perror("malloc");
+            exit(EXIT_FAILURE);
+        }
 
         struct timeval *payload_time = (struct timeval *)(packet + sizeof(struct icmphdr));
         gettimeofday(payload_time, NULL);
-        memset(packet + sizeof(struct icmphdr) + sizeof(struct timeval), 'x', payload_size);
 
+        memset(packet + sizeof(struct icmphdr) + sizeof(struct timeval), 'x', payload_size - sizeof(struct timeval));
         memcpy(packet, &icmp_hdr, sizeof(icmp_hdr));
         ((struct icmphdr *)packet)->checksum = calculate_checksum(packet, packet_size);
 
