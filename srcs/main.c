@@ -148,26 +148,23 @@ int main(int argc, char *argv[])
         icmp_hdr.un.echo.id = getpid();
         icmp_hdr.un.echo.sequence = htons(sequence_nb++);
         
+        size_t adjusted_payload_size = payload_size;
         if (payload_size < sizeof(struct timeval)) {
-            fprintf(stderr, "Payload size must be at least %zu bytes\n", sizeof(struct timeval));
-            exit(EXIT_FAILURE);
+            adjusted_payload_size = sizeof(struct timeval);
         }
 
-        size_t payload_total_size = payload_size;
-        size_t packet_size = sizeof(struct icmphdr) + payload_total_size;
-
-        char *packet = malloc(packet_size);
-        if (!packet) {
-            perror("malloc");
-            exit(EXIT_FAILURE);
-        }
-
-        struct timeval *payload_time = (struct timeval *)(packet + sizeof(struct icmphdr));
-        gettimeofday(payload_time, NULL);
-
-        memset(packet + sizeof(struct icmphdr) + sizeof(struct timeval), 'x', payload_size - sizeof(struct timeval));
-        memcpy(packet, &icmp_hdr, sizeof(icmp_hdr));
-        ((struct icmphdr *)packet)->checksum = calculate_checksum(packet, packet_size);
+size_t packet_size = sizeof(struct icmphdr) + payload_size;
+char *packet = malloc(packet_size);
+if (!packet) {
+    perror("malloc");
+    exit(EXIT_FAILURE);
+}
+// Fill payload with 'x'
+memset(packet + sizeof(struct icmphdr), 'x', payload_size);
+// Copy ICMP header
+memcpy(packet, &icmp_hdr, sizeof(icmp_hdr));
+// Calculate checksum
+((struct icmphdr *)packet)->checksum = calculate_checksum(packet, packet_size);
 
         // Send ICMP packet
         struct sockaddr_in dest_addr;
@@ -286,4 +283,5 @@ static void handle_sigint(int sig)
 double calculate_rtt(struct timeval start, struct timeval end) {
     return (end.tv_sec - start.tv_sec) * 1000.0 + (end.tv_usec - start.tv_usec) / 1000.0;
 }
+
 
