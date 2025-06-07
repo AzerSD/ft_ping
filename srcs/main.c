@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 
     gettimeofday(&ping.start_time, NULL); // Record the start time
 
-    while (count == 0 || ping.ping_num_xmit < (size_t)count) {
+    do {
         struct timeval start_time, end_time;
         gettimeofday(&start_time, NULL);
 
@@ -228,10 +228,10 @@ int main(int argc, char *argv[])
                 ip_hdr->ttl,
                 rtt);
         }
-
+        
         free(packet);
         sleep(interval);
-    }
+    } while (count == 0 || ping.ping_num_xmit < (size_t)count);
 
     ping_finish(&ping);
 
