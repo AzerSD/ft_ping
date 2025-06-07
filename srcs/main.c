@@ -228,11 +228,11 @@ int main(int argc, char *argv[])
                 ip_hdr->ttl,
                 rtt);
         }
-        
+
         free(packet);
         sleep(interval);
     } while (count == 0 || ping.ping_num_xmit < (size_t)count);
-
+    free_arg_parser(&parser);
     ping_finish(&ping);
 
 
