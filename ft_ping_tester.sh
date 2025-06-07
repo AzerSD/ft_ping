@@ -45,4 +45,3 @@ run_test() {
 for case in "${test_cases[@]}"; do
     run_test "$case"
 done
-
