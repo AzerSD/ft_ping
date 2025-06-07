@@ -153,18 +153,17 @@ int main(int argc, char *argv[])
             adjusted_payload_size = sizeof(struct timeval);
         }
 
-size_t packet_size = sizeof(struct icmphdr) + payload_size;
-char *packet = malloc(packet_size);
-if (!packet) {
-    perror("malloc");
-    exit(EXIT_FAILURE);
-}
-// Fill payload with 'x'
-memset(packet + sizeof(struct icmphdr), 'x', payload_size);
-// Copy ICMP header
-memcpy(packet, &icmp_hdr, sizeof(icmp_hdr));
-// Calculate checksum
-((struct icmphdr *)packet)->checksum = calculate_checksum(packet, packet_size);
+        size_t packet_size = sizeof(struct icmphdr) + payload_size;
+        char *packet = malloc(packet_size);
+        if (!packet) {
+            perror("malloc");
+            exit(EXIT_FAILURE);
+        }
+        
+        memset(packet + sizeof(struct icmphdr), 'x', payload_size);
+        memcpy(packet, &icmp_hdr, sizeof(icmp_hdr));
+        
+        ((struct icmphdr *)packet)->checksum = calculate_checksum(packet, packet_size);
 
         // Send ICMP packet
         struct sockaddr_in dest_addr;

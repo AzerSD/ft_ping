@@ -1,0 +1,57 @@
+./ft_ping 8.8.8.8
+ping 8.8.8.8
+
+./ft_ping 192.0.2.123
+ping 192.0.2.123
+
+./ft_ping 192.0.2.123
+ping 192.0.2.123
+
+./ft_ping 192.0.2.123
+ping 192.0.2.123
+
+./ft_ping -v 192.0.2.123
+ping -v 192.0.2.123
+
+./ft_ping google.com
+ping google.com
+
+./ft_ping notarealhost.tld
+ping notarealhost.tld
+
+./ft_ping -v notarealhost.tld
+ping -v notarealhost.tld
+
+./ft_ping -?
+./ft_ping --help
+./ft_ping -h
+
+./ft_ping -c 3 8.8.8.8
+ping -c 3 8.8.8.8
+
+./ft_ping -i 2 -c 3 8.8.8.8
+ping -i 2 -c 3 8.8.8.8
+
+./ft_ping -s 64 -c 2 8.8.8.8
+ping -s 64 -c 2 8.8.8.8
+
+./ft_ping -n 8.8.8.8
+ping -n 8.8.8.8
+
+./ft_ping -c 5 -i 1 -s 56 8.8.8.8
+ping -c 5 -i 1 -s 56 8.8.8.8
+
+./ft_ping -v -i 1 -c 4 google.com
+ping -v -i 1 -c 4 google.com
+
+./ft_ping -? -h --help
+
+./ft_ping -c 0 8.8.8.8
+
+./ft_ping -i 0 -c 3 8.8.8.8
+
+./ft_ping -z 8.8.8.8
+
+./ft_ping 8.8.8.8 extra_arg
+
+./ft_ping -c 3
