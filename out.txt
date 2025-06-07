@@ -1,0 +1,383 @@
+=== Testing: 8.8.8.8 ===
+--- ft_ping ---
+--- system ping ---
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+64 bytes from 8.8.8.8: icmp_seq=0 ttl=63 time=6.777 ms
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=63 time=6.991 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=63 time=7.144 ms
+64 bytes from 8.8.8.8: icmp_seq=3 ttl=63 time=7.179 ms
+64 bytes from 8.8.8.8: icmp_seq=4 ttl=63 time=7.019 ms
+==============================
+
+=== Testing: 192.0.2.123 ===
+--- ft_ping ---
+--- system ping ---
+PING 192.0.2.123 (192.0.2.123): 56 data bytes
+==============================
+
+=== Testing: -v 192.0.2.123 ===
+--- ft_ping ---
+--- system ping ---
+PING 192.0.2.123 (192.0.2.123): 56 data bytes, id 0x265c = 9820
+==============================
+
+=== Testing: google.com ===
+--- ft_ping ---
+--- system ping ---
+PING google.com (172.217.16.142): 56 data bytes
+64 bytes from 172.217.16.142: icmp_seq=0 ttl=63 time=5.721 ms
+64 bytes from 172.217.16.142: icmp_seq=1 ttl=63 time=5.927 ms
+64 bytes from 172.217.16.142: icmp_seq=2 ttl=63 time=5.877 ms
+64 bytes from 172.217.16.142: icmp_seq=3 ttl=63 time=5.953 ms
+64 bytes from 172.217.16.142: icmp_seq=4 ttl=63 time=6.129 ms
+==============================
+
+=== Testing: notarealhost.tld ===
+--- ft_ping ---
+ping: unknown host
+--- system ping ---
+/usr/bin/ping: unknown host
+==============================
+
+=== Testing: -v notarealhost.tld ===
+--- ft_ping ---
+ping: unknown host
+--- system ping ---
+/usr/bin/ping: unknown host
+==============================
+
+=== Testing: -? ===
+--- ft_ping ---
+Usage: sudo ./ft_ping [-v] [-?] <hostname>
+  -v, --verbose        Show extra error information (e.g., unreachable hosts)
+  -c, --count COUNT    Stop after sending <count> packets
+  -i, --interval SECS  Interval between packets
+  -s, --size SIZE      Payload size in bytes
+  -n, --numeric        Do not resolve hostnames
+  -?, --help           Show this help message
+  -h, --help           Show this help message
+--- system ping ---
+Usage: ping [OPTION...] HOST ...
+Send ICMP ECHO_REQUEST packets to network hosts.
+
+ Options controlling ICMP request types:
+      --address              send ICMP_ADDRESS packets (root only)
+      --echo                 send ICMP_ECHO packets (default)
+      --mask                 same as --address
+      --timestamp            send ICMP_TIMESTAMP packets
+  -t, --type=TYPE            send TYPE packets
+
+ Options valid for all request types:
+
+  -c, --count=NUMBER         stop after sending NUMBER packets
+  -d, --debug                set the SO_DEBUG option
+  -i, --interval=NUMBER      wait NUMBER seconds between sending each packet
+  -n, --numeric              do not resolve host addresses
+  -r, --ignore-routing       send directly to a host on an attached network
+      --ttl=N                specify N as time-to-live
+  -T, --tos=NUM              set type of service (TOS) to NUM
+  -v, --verbose              verbose output
+  -w, --timeout=N            stop after N seconds
+  -W, --linger=N             number of seconds to wait for response
+
+ Options valid for --echo requests:
+
+  -f, --flood                flood ping (root only)
+      --ip-timestamp=FLAG    IP timestamp of type FLAG, which is one of
+                             "tsonly" and "tsaddr"
+  -l, --preload=NUMBER       send NUMBER packets as fast as possible before
+                             falling into normal mode of behavior (root only)
+  -p, --pattern=PATTERN      fill ICMP packet with given pattern (hex)
+  -q, --quiet                quiet output
+  -R, --route                record route
+  -s, --size=NUMBER          send NUMBER data octets
+
+  -?, --help                 give this help list
+      --usage                give a short usage message
+  -V, --version              print program version
+
+Mandatory or optional arguments to long options are also mandatory or optional
+for any corresponding short options.
+
+Options marked with (root only) are available only to superuser.
+
+Report bugs to <bug-inetutils@gnu.org>.
+==============================
+
+=== Testing: --help ===
+--- ft_ping ---
+Usage: sudo ./ft_ping [-v] [-?] <hostname>
+  -v, --verbose        Show extra error information (e.g., unreachable hosts)
+  -c, --count COUNT    Stop after sending <count> packets
+  -i, --interval SECS  Interval between packets
+  -s, --size SIZE      Payload size in bytes
+  -n, --numeric        Do not resolve hostnames
+  -?, --help           Show this help message
+  -h, --help           Show this help message
+--- system ping ---
+Usage: ping [OPTION...] HOST ...
+Send ICMP ECHO_REQUEST packets to network hosts.
+
+ Options controlling ICMP request types:
+      --address              send ICMP_ADDRESS packets (root only)
+      --echo                 send ICMP_ECHO packets (default)
+      --mask                 same as --address
+      --timestamp            send ICMP_TIMESTAMP packets
+  -t, --type=TYPE            send TYPE packets
+
+ Options valid for all request types:
+
+  -c, --count=NUMBER         stop after sending NUMBER packets
+  -d, --debug                set the SO_DEBUG option
+  -i, --interval=NUMBER      wait NUMBER seconds between sending each packet
+  -n, --numeric              do not resolve host addresses
+  -r, --ignore-routing       send directly to a host on an attached network
+      --ttl=N                specify N as time-to-live
+  -T, --tos=NUM              set type of service (TOS) to NUM
+  -v, --verbose              verbose output
+  -w, --timeout=N            stop after N seconds
+  -W, --linger=N             number of seconds to wait for response
+
+ Options valid for --echo requests:
+
+  -f, --flood                flood ping (root only)
+      --ip-timestamp=FLAG    IP timestamp of type FLAG, which is one of
+                             "tsonly" and "tsaddr"
+  -l, --preload=NUMBER       send NUMBER packets as fast as possible before
+                             falling into normal mode of behavior (root only)
+  -p, --pattern=PATTERN      fill ICMP packet with given pattern (hex)
+  -q, --quiet                quiet output
+  -R, --route                record route
+  -s, --size=NUMBER          send NUMBER data octets
+
+  -?, --help                 give this help list
+      --usage                give a short usage message
+  -V, --version              print program version
+
+Mandatory or optional arguments to long options are also mandatory or optional
+for any corresponding short options.
+
+Options marked with (root only) are available only to superuser.
+
+Report bugs to <bug-inetutils@gnu.org>.
+==============================
+
+=== Testing: -h ===
+--- ft_ping ---
+Usage: sudo ./ft_ping [-v] [-?] <hostname>
+  -v, --verbose        Show extra error information (e.g., unreachable hosts)
+  -c, --count COUNT    Stop after sending <count> packets
+  -i, --interval SECS  Interval between packets
+  -s, --size SIZE      Payload size in bytes
+  -n, --numeric        Do not resolve hostnames
+  -?, --help           Show this help message
+  -h, --help           Show this help message
+--- system ping ---
+/usr/bin/ping: invalid option -- 'h'
+Try 'ping --help' or 'ping --usage' for more information.
+==============================
+
+=== Testing: -c 3 8.8.8.8 ===
+--- ft_ping ---
+PING 8.8.8.8 (8.8.8.8): 56 bytes of data
+64 bytes from 8.8.8.8: icmp_seq=0 ttl=63 time=7.120 ms
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=63 time=7.115 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=63 time=7.125 ms
+
+--- 8.8.8.8 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss
+--- system ping ---
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+64 bytes from 8.8.8.8: icmp_seq=0 ttl=63 time=6.905 ms
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=63 time=7.109 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=63 time=7.149 ms
+--- 8.8.8.8 ping statistics ---
+3 packets transmitted, 3 packets received, 0% packet loss
+round-trip min/avg/max/stddev = 6.905/7.054/7.149/0.107 ms
+==============================
+
+=== Testing: -i 2 -c 3 8.8.8.8 ===
+--- ft_ping ---
+--- system ping ---
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+64 bytes from 8.8.8.8: icmp_seq=0 ttl=63 time=6.934 ms
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=63 time=7.079 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=63 time=7.149 ms
+--- 8.8.8.8 ping statistics ---
+3 packets transmitted, 3 packets received, 0% packet loss
+round-trip min/avg/max/stddev = 6.934/7.054/7.149/0.090 ms
+==============================
+
+=== Testing: -s 64 -c 2 8.8.8.8 ===
+--- ft_ping ---
+PING 8.8.8.8 (8.8.8.8): 64 bytes of data
+72 bytes from 8.8.8.8: icmp_seq=0 ttl=63 time=6.955 ms
+72 bytes from 8.8.8.8: icmp_seq=1 ttl=63 time=7.173 ms
+
+--- 8.8.8.8 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss
+--- system ping ---
+PING 8.8.8.8 (8.8.8.8): 64 data bytes
+72 bytes from 8.8.8.8: icmp_seq=0 ttl=63 time=7.119 ms
+72 bytes from 8.8.8.8: icmp_seq=1 ttl=63 time=6.898 ms
+--- 8.8.8.8 ping statistics ---
+2 packets transmitted, 2 packets received, 0% packet loss
+round-trip min/avg/max/stddev = 6.898/7.008/7.119/0.111 ms
+==============================
+
+=== Testing: -n 8.8.8.8 ===
+--- ft_ping ---
+--- system ping ---
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+64 bytes from 8.8.8.8: icmp_seq=0 ttl=63 time=7.097 ms
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=63 time=6.933 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=63 time=7.332 ms
+64 bytes from 8.8.8.8: icmp_seq=3 ttl=63 time=6.945 ms
+64 bytes from 8.8.8.8: icmp_seq=4 ttl=63 time=6.947 ms
+==============================
+
+=== Testing: -c 5 -i 1 -s 56 8.8.8.8 ===
+--- ft_ping ---
+--- system ping ---
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+64 bytes from 8.8.8.8: icmp_seq=0 ttl=63 time=6.889 ms
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=63 time=7.199 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=63 time=7.184 ms
+64 bytes from 8.8.8.8: icmp_seq=3 ttl=63 time=7.205 ms
+64 bytes from 8.8.8.8: icmp_seq=4 ttl=63 time=7.157 ms
+--- 8.8.8.8 ping statistics ---
+5 packets transmitted, 5 packets received, 0% packet loss
+round-trip min/avg/max/stddev = 6.889/7.127/7.205/0.120 ms
+==============================
+
+=== Testing: -v -i 1 -c 4 google.com ===
+--- ft_ping ---
+PING google.com (172.217.16.142): 56 data bytes, id 0x26fe = 9982
+64 bytes from 172.217.16.142: icmp_seq=0 ttl=63 time=5.876 ms
+64 bytes from 172.217.16.142: icmp_seq=1 ttl=63 time=5.861 ms
+64 bytes from 172.217.16.142: icmp_seq=2 ttl=63 time=5.834 ms
+64 bytes from 172.217.16.142: icmp_seq=3 ttl=63 time=5.823 ms
+
+--- google.com ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss
+--- system ping ---
+PING google.com (172.217.16.142): 56 data bytes, id 0x271e = 10014
+64 bytes from 172.217.16.142: icmp_seq=0 ttl=63 time=5.709 ms
+64 bytes from 172.217.16.142: icmp_seq=1 ttl=63 time=5.995 ms
+64 bytes from 172.217.16.142: icmp_seq=2 ttl=63 time=5.771 ms
+64 bytes from 172.217.16.142: icmp_seq=3 ttl=63 time=5.608 ms
+--- google.com ping statistics ---
+4 packets transmitted, 4 packets received, 0% packet loss
+round-trip min/avg/max/stddev = 5.608/5.771/5.995/0.142 ms
+==============================
+
+=== Testing: -? -h --help ===
+--- ft_ping ---
+Usage: sudo ./ft_ping [-v] [-?] <hostname>
+  -v, --verbose        Show extra error information (e.g., unreachable hosts)
+  -c, --count COUNT    Stop after sending <count> packets
+  -i, --interval SECS  Interval between packets
+  -s, --size SIZE      Payload size in bytes
+  -n, --numeric        Do not resolve hostnames
+  -?, --help           Show this help message
+  -h, --help           Show this help message
+--- system ping ---
+Usage: ping [OPTION...] HOST ...
+Send ICMP ECHO_REQUEST packets to network hosts.
+
+ Options controlling ICMP request types:
+      --address              send ICMP_ADDRESS packets (root only)
+      --echo                 send ICMP_ECHO packets (default)
+      --mask                 same as --address
+      --timestamp            send ICMP_TIMESTAMP packets
+  -t, --type=TYPE            send TYPE packets
+
+ Options valid for all request types:
+
+  -c, --count=NUMBER         stop after sending NUMBER packets
+  -d, --debug                set the SO_DEBUG option
+  -i, --interval=NUMBER      wait NUMBER seconds between sending each packet
+  -n, --numeric              do not resolve host addresses
+  -r, --ignore-routing       send directly to a host on an attached network
+      --ttl=N                specify N as time-to-live
+  -T, --tos=NUM              set type of service (TOS) to NUM
+  -v, --verbose              verbose output
+  -w, --timeout=N            stop after N seconds
+  -W, --linger=N             number of seconds to wait for response
+
+ Options valid for --echo requests:
+
+  -f, --flood                flood ping (root only)
+      --ip-timestamp=FLAG    IP timestamp of type FLAG, which is one of
+                             "tsonly" and "tsaddr"
+  -l, --preload=NUMBER       send NUMBER packets as fast as possible before
+                             falling into normal mode of behavior (root only)
+  -p, --pattern=PATTERN      fill ICMP packet with given pattern (hex)
+  -q, --quiet                quiet output
+  -R, --route                record route
+  -s, --size=NUMBER          send NUMBER data octets
+
+  -?, --help                 give this help list
+      --usage                give a short usage message
+  -V, --version              print program version
+
+Mandatory or optional arguments to long options are also mandatory or optional
+for any corresponding short options.
+
+Options marked with (root only) are available only to superuser.
+
+Report bugs to <bug-inetutils@gnu.org>.
+==============================
+
+=== Testing: -c 0 8.8.8.8 ===
+--- ft_ping ---
+--- system ping ---
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+64 bytes from 8.8.8.8: icmp_seq=0 ttl=63 time=7.097 ms
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=63 time=6.989 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=63 time=6.992 ms
+64 bytes from 8.8.8.8: icmp_seq=3 ttl=63 time=7.314 ms
+64 bytes from 8.8.8.8: icmp_seq=4 ttl=63 time=7.104 ms
+==============================
+
+=== Testing: -i 0 -c 3 8.8.8.8 ===
+--- ft_ping ---
+PING 8.8.8.8 (8.8.8.8): 56 bytes of data
+64 bytes from 8.8.8.8: icmp_seq=0 ttl=63 time=6.994 ms
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=63 time=6.987 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=63 time=6.918 ms
+
+--- 8.8.8.8 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss
+--- system ping ---
+/usr/bin/ping: option value too small: 0
+==============================
+
+=== Testing: -z 8.8.8.8 ===
+--- ft_ping ---
+ping: unknown host
+--- system ping ---
+/usr/bin/ping: invalid option -- 'z'
+Try 'ping --help' or 'ping --usage' for more information.
+==============================
+
+=== Testing: 8.8.8.8 extra_arg ===
+--- ft_ping ---
+--- system ping ---
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+64 bytes from 8.8.8.8: icmp_seq=0 ttl=63 time=6.872 ms
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=63 time=7.003 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=63 time=7.224 ms
+64 bytes from 8.8.8.8: icmp_seq=3 ttl=63 time=7.228 ms
+64 bytes from 8.8.8.8: icmp_seq=4 ttl=63 time=7.157 ms
+==============================
+
+=== Testing: -c 3 ===
+--- ft_ping ---
+ft_ping: missing host operand.
+Usage: sudo ./ft_ping [-h] [-?] <hostname>
+--- system ping ---
+ping: missing host operand
+Try 'ping --help' or 'ping --usage' for more information.
+==============================
+
