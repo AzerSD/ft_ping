@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 
     gettimeofday(&ping.start_time, NULL); // Record the start time
 
-    while (count == 0 || ping.ping_num_xmit < (size_t)count) {
+    do {
         struct timeval start_time, end_time;
         gettimeofday(&start_time, NULL);
 
@@ -153,18 +153,17 @@ int main(int argc, char *argv[])
             adjusted_payload_size = sizeof(struct timeval);
         }
 
-size_t packet_size = sizeof(struct icmphdr) + payload_size;
-char *packet = malloc(packet_size);
-if (!packet) {
-    perror("malloc");
-    exit(EXIT_FAILURE);
-}
-// Fill payload with 'x'
-memset(packet + sizeof(struct icmphdr), 'x', payload_size);
-// Copy ICMP header
-memcpy(packet, &icmp_hdr, sizeof(icmp_hdr));
-// Calculate checksum
-((struct icmphdr *)packet)->checksum = calculate_checksum(packet, packet_size);
+        size_t packet_size = sizeof(struct icmphdr) + payload_size;
+        char *packet = malloc(packet_size);
+        if (!packet) {
+            perror("malloc");
+            exit(EXIT_FAILURE);
+        }
+        
+        memset(packet + sizeof(struct icmphdr), 'x', payload_size);
+        memcpy(packet, &icmp_hdr, sizeof(icmp_hdr));
+        
+        ((struct icmphdr *)packet)->checksum = calculate_checksum(packet, packet_size);
 
         // Send ICMP packet
         struct sockaddr_in dest_addr;
@@ -232,10 +231,11 @@ memcpy(packet, &icmp_hdr, sizeof(icmp_hdr));
 
         free(packet);
         sleep(interval);
-    }
-
+    } while (count == 0 || ping.ping_num_xmit < (size_t)count);
+    freeaddrinfo(res);
+    free_arg_parser(&parser);
+    close(sockfd);
     ping_finish(&ping);
-
 
     return 0;
 }
@@ -283,5 +283,6 @@ static void handle_sigint(int sig)
 double calculate_rtt(struct timeval start, struct timeval end) {
     return (end.tv_sec - start.tv_sec) * 1000.0 + (end.tv_usec - start.tv_usec) / 1000.0;
 }
+
 
 
