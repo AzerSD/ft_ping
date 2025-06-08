@@ -58,12 +58,10 @@ int main(int argc, char *argv[])
     int verbose = 0;
     int show_help = 0;
     int count = 0;
-    int ttl = -1;
-    int numeric = 0;
     int interval = 1;
+    int quiet = 0;
     int payload_size = ICMP_PAYLOAD_SIZE;
-    
-    
+
     ArgParser parser;
     
     init_arg_parser(&parser);
@@ -73,7 +71,7 @@ int main(int argc, char *argv[])
     add_option(&parser, "-c", "--count", ARGTYPE_INT, &count);
     add_option(&parser, "-i", "--interval", ARGTYPE_INT, &interval);
     add_option(&parser, "-s", "--size", ARGTYPE_INT, &payload_size);
-    add_option(&parser, "-n", "--numeric", ARGTYPE_FLAG, &numeric);
+    add_option(&parser, "-q", "--quiet", ARGTYPE_FLAG, &quiet);
     parse_arguments(&parser, argc, argv);
 
     if (show_help) {
@@ -82,7 +80,7 @@ int main(int argc, char *argv[])
         printf("  -c, --count COUNT    Stop after sending <count> packets\n");
         printf("  -i, --interval SECS  Interval between packets\n");
         printf("  -s, --size SIZE      Payload size in bytes\n");
-        printf("  -n, --numeric        Do not resolve hostnames\n");
+        printf("  -q, --quiet          Suppress output except for errors\n");
         printf("  -?, --help           Show this help message\n");
         printf("  -h, --help           Show this help message\n");
         exit(EXIT_SUCCESS);
@@ -239,14 +237,17 @@ int main(int argc, char *argv[])
         }
         else
         {
-            double rtt = calculate_rtt(start_time, end_time);
-            printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
-                ntohs(ip_hdr->tot_len) - (ip_hdr->ihl * 4),
-                inet_ntop(AF_INET, &reply_addr.sin_addr, ip_str, sizeof(ip_str)),
-                ntohs(icmp_reply->un.echo.sequence),
-                ip_hdr->ttl,
-                rtt
-            );
+            if (!quiet)
+            {
+                double rtt = calculate_rtt(start_time, end_time);
+                printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
+                    ntohs(ip_hdr->tot_len) - (ip_hdr->ihl * 4),
+                    inet_ntop(AF_INET, &reply_addr.sin_addr, ip_str, sizeof(ip_str)),
+                    ntohs(icmp_reply->un.echo.sequence),
+                    ip_hdr->ttl,
+                    rtt
+                );
+            }
         }
 
         free(packet);
