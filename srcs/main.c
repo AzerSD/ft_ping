@@ -88,7 +88,6 @@ int main(int argc, char *argv[])
         exit(EXIT_SUCCESS);
     }
 
-    // Require 1 positional argument: hostname
     if (parser.positional_count < 1) {
         fprintf(stderr, "ft_ping: missing host operand.\n");
         fprintf(stderr, "Usage: sudo ./ft_ping [-h] [-?] <hostname>\n");
@@ -137,7 +136,7 @@ int main(int argc, char *argv[])
 
     gettimeofday(&ping.start_time, NULL); // Record the start time
 
-    do {
+    while(count == 0 || ping.ping_num_xmit < (size_t)count) {
         struct timeval start_time, end_time;
         gettimeofday(&start_time, NULL);
 
@@ -214,6 +213,11 @@ int main(int argc, char *argv[])
         struct iphdr *ip_hdr = (struct iphdr *)buffer;
         struct icmphdr *icmp_reply = (struct icmphdr *)(buffer + ip_hdr->ihl * 4);
 
+        if (icmp_hdr.un.echo.id != getpid() || icmp_reply->type != ICMP_ECHOREPLY) {
+            free(packet);
+            continue;
+        }
+        
         if (icmp_reply->type == ICMP_DEST_UNREACH) {
             struct iphdr *original_ip = (struct iphdr *)(buffer + ip_hdr->ihl * 4 + sizeof(struct icmphdr));
             struct icmphdr *original_icmp = (struct icmphdr *)((char *)original_ip + (original_ip->ihl * 4));
@@ -233,7 +237,7 @@ int main(int argc, char *argv[])
 
         free(packet);
         sleep(interval);
-    } while (count == 0 || ping.ping_num_xmit < (size_t)count);
+    } ;
     freeaddrinfo(res);
     free_arg_parser(&parser);
     close(sockfd);
