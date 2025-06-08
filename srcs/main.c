@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
             getpid(),
             getpid());
     } else {
-        printf("PING %s (%s): %d bytes of data\n",
+        printf("PING %s (%s): %d data bytes\n",
             ping.ping_hostname,
             ip_str,
             payload_size);
@@ -199,9 +199,11 @@ int main(int argc, char *argv[])
 
         if (recvmsg(sockfd, &msg, 0) < 0) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                free(packet);
                 continue;
             } else {
                 printf("ping: error: %s\n", strerror(errno));
+                free(packet);
                 exit(EXIT_FAILURE);
             }
         }
