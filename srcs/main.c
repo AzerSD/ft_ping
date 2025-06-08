@@ -62,10 +62,11 @@ int main(int argc, char *argv[])
     int numeric = 0;
     int interval = 1;
     int payload_size = ICMP_PAYLOAD_SIZE;
-
+    
+    
     ArgParser parser;
+    
     init_arg_parser(&parser);
-
     add_option(&parser, "-v", "--verbose", ARGTYPE_FLAG, &verbose);
     add_option(&parser, "-?", "--help", ARGTYPE_FLAG, &show_help);
     add_option(&parser, "-h", "--help", ARGTYPE_FLAG, &show_help);
@@ -73,7 +74,6 @@ int main(int argc, char *argv[])
     add_option(&parser, "-i", "--interval", ARGTYPE_INT, &interval);
     add_option(&parser, "-s", "--size", ARGTYPE_INT, &payload_size);
     add_option(&parser, "-n", "--numeric", ARGTYPE_FLAG, &numeric);
-
     parse_arguments(&parser, argc, argv);
 
     if (show_help) {
@@ -120,23 +120,29 @@ int main(int argc, char *argv[])
     struct sockaddr_in *addr = (struct sockaddr_in *)res->ai_addr;
     inet_ntop(AF_INET, &(addr->sin_addr), ip_str, sizeof(ip_str));
     int sequence_nb = 0;
-    if (verbose) {
+    if (verbose)
+    {
         printf("PING %s (%s): %d data bytes, id 0x%x = %d\n",
             ping.ping_hostname,
             ip_str,
             payload_size,
             getpid(),
-            getpid());
-    } else {
+            getpid()
+        );
+    } 
+    else
+    {
         printf("PING %s (%s): %d data bytes\n",
             ping.ping_hostname,
             ip_str,
-            payload_size);
+            payload_size
+        );
     }
 
     gettimeofday(&ping.start_time, NULL); // Record the start time
 
-    while(count == 0 || ping.ping_num_xmit < (size_t)count) {
+    while(count == 0 || ping.ping_num_xmit < (size_t)count)
+    {
         struct timeval start_time, end_time;
         gettimeofday(&start_time, NULL);
 
@@ -148,9 +154,8 @@ int main(int argc, char *argv[])
         icmp_hdr.un.echo.sequence = htons(sequence_nb++);
         
         size_t adjusted_payload_size = payload_size;
-        if (payload_size < sizeof(struct timeval)) {
+        if (payload_size < sizeof(struct timeval))
             adjusted_payload_size = sizeof(struct timeval);
-        }
 
         size_t packet_size = sizeof(struct icmphdr) + payload_size;
         char *packet = malloc(packet_size);
@@ -168,26 +173,27 @@ int main(int argc, char *argv[])
         struct sockaddr_in dest_addr;
         dest_addr.sin_family = AF_INET;
         dest_addr.sin_addr = addr->sin_addr;
-
+        
         struct timeval timeout;
         timeout.tv_sec = 2;
         timeout.tv_usec = 0;
-        setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 
+        setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
         if (sendto(sockfd, packet, packet_size, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) < 0) {
             perror("sendto");
             free(packet);
             continue;
         }
+
         ping.ping_num_xmit++;
 
         // receive response
         char buffer[1024];
         struct sockaddr_in reply_addr;
         socklen_t addr_len = sizeof(reply_addr);
-
         struct msghdr msg;
         struct iovec iov[1];
+
         iov[0].iov_base = buffer;
         iov[0].iov_len = sizeof(buffer);
         ft_memset(&msg, 0, sizeof(msg));
@@ -197,23 +203,27 @@ int main(int argc, char *argv[])
         msg.msg_iovlen = 1;
 
         if (recvmsg(sockfd, &msg, 0) < 0) {
-            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            {
                 free(packet);
                 continue;
-            } else {
+            }
+            else
+            {
                 printf("ping: error: %s\n", strerror(errno));
                 free(packet);
                 exit(EXIT_FAILURE);
             }
         }
 
-        gettimeofday(&end_time, NULL);
         ping.ping_num_recv++;
-
+        gettimeofday(&end_time, NULL);
+        
         struct iphdr *ip_hdr = (struct iphdr *)buffer;
         struct icmphdr *icmp_reply = (struct icmphdr *)(buffer + ip_hdr->ihl * 4);
 
         if (icmp_hdr.un.echo.id != getpid() || icmp_reply->type != ICMP_ECHOREPLY) {
+            ping.ping_num_xmit--;
             free(packet);
             continue;
         }
@@ -224,20 +234,25 @@ int main(int argc, char *argv[])
 
             printf("From %s icmp_seq=%d Destination Host Unreachable\n",
                 inet_ntop(AF_INET, &reply_addr.sin_addr, ip_str, sizeof(ip_str)),
-                ntohs(original_icmp->un.echo.sequence));
-        } else {
+                ntohs(original_icmp->un.echo.sequence)
+            );
+        }
+        else
+        {
             double rtt = calculate_rtt(start_time, end_time);
             printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
                 ntohs(ip_hdr->tot_len) - (ip_hdr->ihl * 4),
                 inet_ntop(AF_INET, &reply_addr.sin_addr, ip_str, sizeof(ip_str)),
                 ntohs(icmp_reply->un.echo.sequence),
                 ip_hdr->ttl,
-                rtt);
+                rtt
+            );
         }
 
         free(packet);
         sleep(interval);
     } ;
+
     freeaddrinfo(res);
     free_arg_parser(&parser);
     close(sockfd);
