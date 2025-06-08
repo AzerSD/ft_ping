@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
     int show_help = 0;
     int count = 0;
     int interval = 1;
+    int preload = 0;
     int quiet = 0;
     int payload_size = ICMP_PAYLOAD_SIZE;
 
@@ -71,18 +72,20 @@ int main(int argc, char *argv[])
     add_option(&parser, "-c", "--count", ARGTYPE_INT, &count);
     add_option(&parser, "-i", "--interval", ARGTYPE_INT, &interval);
     add_option(&parser, "-s", "--size", ARGTYPE_INT, &payload_size);
+    add_option(&parser, "-l", "--preload", ARGTYPE_INT, &preload);
     add_option(&parser, "-q", "--quiet", ARGTYPE_FLAG, &quiet);
     parse_arguments(&parser, argc, argv);
 
     if (show_help) {
         printf("Usage: sudo ./ft_ping [-v] [-?] <hostname>\n");
-        printf("  -v, --verbose        Show extra error information (e.g., unreachable hosts)\n");
-        printf("  -c, --count COUNT    Stop after sending <count> packets\n");
-        printf("  -i, --interval SECS  Interval between packets\n");
-        printf("  -s, --size SIZE      Payload size in bytes\n");
-        printf("  -q, --quiet          Suppress output except for errors\n");
-        printf("  -?, --help           Show this help message\n");
-        printf("  -h, --help           Show this help message\n");
+        printf("  -v, --verbose         Show extra error information (e.g., unreachable hosts)\n");
+        printf("  -c, --count COUNT     Stop after sending <count> packets\n");
+        printf("  -i, --interval SECS   Interval between packets\n");
+        printf("  -s, --size SIZE       Payload size in bytes\n");
+        printf("  -q, --quiet           Suppress output except for errors\n");
+        printf("  -?, --help            Show this help message\n");
+        printf("  -l, --preload PRELOAD Number of packets to preload before normal behavior\n");
+        printf("  -h, --help            Show this help message\n");
         exit(EXIT_SUCCESS);
     }
 
@@ -185,6 +188,7 @@ int main(int argc, char *argv[])
 
         ping.ping_num_xmit++;
 
+
         // receive response
         char buffer[1024];
         struct sockaddr_in reply_addr;
@@ -251,6 +255,11 @@ int main(int argc, char *argv[])
         }
 
         free(packet);
+        if (preload > 0)
+        {
+            preload--;
+            continue;
+        }
         sleep(interval);
     } ;
 
